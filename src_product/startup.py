@@ -127,6 +127,8 @@ def run():
 		if not debug:
 			replenish_bnb(exchange, balance)
 
+		# 清理数据
+		del symbol_candle_data, select_coin, symbol_info
 		# 本次循环结束
 		# 时间补偿
 		print('-' * 20, '本次循环结束，%f秒后进入下一次循环' % 20, '-' * 20)

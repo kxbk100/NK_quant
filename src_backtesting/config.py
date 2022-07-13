@@ -33,7 +33,7 @@ head_columns = [
 ]  
 
 
-factor_class_list  = ['Bias', 'Cci']
+factor_class_list  = ['Bias', 'Cci', 'KdjD','Dbcd','VixBw','Rccd','ZhenFu_v2']
 
 '''
 factor_class_list  = ['Bias', 'Cci', 'Adtm', 'Adx', 'Angle', 'Atr',

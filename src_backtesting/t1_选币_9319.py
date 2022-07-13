@@ -167,8 +167,8 @@ def evaluate(df, ret_1h, hold_hour, c_rate, select_coin_num):
 #==================================================================
 #==================================================================
 
-start_date = '2020-06-01'
-end_date   = '2021-02-01'
+start_date = '2021-01-27'
+end_date   = '2022-01-27'
 
 header_columns  = ['candle_begin_time', 'symbol', 'ret_next']
 select_coin_num = 1
@@ -180,8 +180,17 @@ filter_list     = [
 	#'ZH_涨跌幅_fl_4', 
 	#'ZH_震幅_fl_4', 
 ]
-factor_list     = [
-	('Bias', False, 4, 0, 1.0),('Cci', True, 36, 0, 0.3)
+
+factor_list = [
+    ('Dbcd', True, 48, 0, 0.6), ('Dbcd', True, 24, 0, -0.6), ('VixBw', True, 3, 0, 1.0),
+    ('Dbcd', True, 72, 0, -1.0), ('Dbcd', True, 60, 0, 0.3), ('Dbcd', True, 3, 0, -1.0),
+    ('VixBw', True, 72, 0, 1.0), ('Dbcd', True, 9, 0, 1.0), ('Dbcd', True, 6, 0, 0.6),
+    ('VixBw', True, 48, 0, 1.0), ('Dbcd', True, 8, 0, -0.8), ('Dbcd', True, 30, 0, 0.8),
+    ('VixBw', True, 9, 0, 0.9), ('VixBw', True, 8, 0, 1.0), ('VixBw', True, 60, 0, -1.0),
+    ('Dbcd', True, 96, 0, 1.0), ('VixBw', True, 96, 0, 0.4), ('VixBw', True, 4, 0, 0.3),
+    ('VixBw', True, 6, 0, 0.6), ('Dbcd', True, 4, 0, 1.0), ('Dbcd', True, 36, 0, -0.5),
+    ('VixBw', True, 24, 0, -1.0), ('Dbcd', True, 12, 0, 1.0), ('VixBw', True, 36, 0, -1.0),
+    ('VixBw', True, 30, 0, 0.9), ('VixBw', True, 12, 0, 1.0),
 ]
 
 
@@ -234,7 +243,8 @@ all_select_df['offset'] = all_select_df['candle_begin_time'].apply(lambda x: int
 # ===资金曲线
 all_select_df['资金曲线'] = (all_select_df['本周期多空涨跌幅'] + 1).cumprod()
 rtn, select_c = ind.cal_ind(all_select_df)
-print(rtn)
+# print(rtn)
+print(rtn.to_markdown())
 print('\n')
 tools.plot(select_c, mdd_std=0.2)
 

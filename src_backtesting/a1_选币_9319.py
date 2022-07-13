@@ -30,6 +30,9 @@ from utils import reader, tools, ind
 #==================================================================
 # 前置过滤
 def filter_before(df1, df2):
+	# filter_factor = 'BBW_fl_[20, 2]'
+	# df1 = df1[(df1[filter_factor] > 0)]
+
 	"""
 	filter_factor = 'AdaptBolling_fl_100'
 	# 破下轨不做多
@@ -44,7 +47,7 @@ def filter_before(df1, df2):
 	filter_factor = 'ZH_涨跌幅_fl_4'
 	df1 = df1[(df1[filter_factor] <=  0.4)]
 	df2 = df2[(df2[filter_factor] >= -0.4)]
-	#"""
+	"""
 
 	return df1, df2
 
@@ -94,21 +97,26 @@ def gen_selected(df, select_coin_num):
 #==================================================================
 
 
-start_date = '2020-06-01'
-end_date   = '2021-02-01'
+start_date = '2021-01-27'
+end_date   = '2022-01-27'
 
 header_columns  = ['candle_begin_time', 'symbol', 'ret_next']
 select_coin_num = 1
 c_rate 			= 6/10000
 trade_type 		= 'swap'
 hold_hour  		= '6H'    
-filter_list     = [
-	#'AdaptBolling_fl_100', 
-	#'ZH_涨跌幅_fl_4', 
-	#'ZH_震幅_fl_4', 
-]
-factor_list     = [
-	('Bias', False, 4, 0, 1.0),('Cci', True, 36, 0, 0.3)
+filter_list     = []
+
+factor_list = [
+    ('Dbcd', True, 48, 0, 0.6), ('Dbcd', True, 24, 0, -0.6), ('VixBw', True, 3, 0, 1.0),
+    ('Dbcd', True, 72, 0, -1.0), ('Dbcd', True, 60, 0, 0.3), ('Dbcd', True, 3, 0, -1.0),
+    ('VixBw', True, 72, 0, 1.0), ('Dbcd', True, 9, 0, 1.0), ('Dbcd', True, 6, 0, 0.6),
+    ('VixBw', True, 48, 0, 1.0), ('Dbcd', True, 8, 0, -0.8), ('Dbcd', True, 30, 0, 0.8),
+    ('VixBw', True, 9, 0, 0.9), ('VixBw', True, 8, 0, 1.0), ('VixBw', True, 60, 0, -1.0),
+    ('Dbcd', True, 96, 0, 1.0), ('VixBw', True, 96, 0, 0.4), ('VixBw', True, 4, 0, 0.3),
+    ('VixBw', True, 6, 0, 0.6), ('Dbcd', True, 4, 0, 1.0), ('Dbcd', True, 36, 0, -0.5),
+    ('VixBw', True, 24, 0, -1.0), ('Dbcd', True, 12, 0, 1.0), ('VixBw', True, 36, 0, -1.0),
+    ('VixBw', True, 30, 0, 0.9), ('VixBw', True, 12, 0, 1.0),
 ]
 
 
@@ -161,7 +169,7 @@ select_coin['offset'] = select_coin['candle_begin_time'].apply(lambda x: int(((x
 temp = pd.DataFrame()
 # ===显示所有offset资金曲线
 for offset, g_df in select_coin.groupby('offset'):
-	print(offset)
+	# print(offset)
 	g_df.sort_values(by='candle_begin_time', inplace=True)
 	g_df.reset_index(drop=True, inplace=True)
 	# ===计算涨跌幅
@@ -170,7 +178,7 @@ for offset, g_df in select_coin.groupby('offset'):
 	select_c['资金曲线'] = (select_c['本周期多空涨跌幅'] + 1).cumprod()
 	select_c['offset'] = offset
 	rtn, select_c = ind.cal_ind(select_c)
-	print(rtn)
+	# print(rtn)
 	temp = temp.append(rtn, ignore_index=True)
 	ax = plt.subplot(int(hold_hour[:-1]), 1, offset + 1)
 	ax.plot(select_c['candle_begin_time'], select_c['资金曲线'])

@@ -174,6 +174,12 @@ class alphaFactory(ea.Problem):  # 继承Problem父类
 			filter_df  = self.alldata[filter_list]
 			args.append([header_df, feature_df, filter_df, self.hold_hour, factor_list])
 
+		'''
+		result_list = []
+		for arg in args:
+			header, features, filters, hold_hour, factor_list = arg
+			result_list.append(evaluate(header, features, filters, hold_hour, factor_list))
+		'''
 		result_list = self.pool.starmap(evaluate, args)
 
 		target_list = []

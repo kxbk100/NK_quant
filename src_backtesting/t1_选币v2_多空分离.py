@@ -74,6 +74,9 @@ def gen_selected(df, select_coin_num):
 	# 后置过滤
 	df1, df2 = filter_after(df1, df2)
 
+	del df2['排名2']
+	del df1['排名1']
+
 	# 合并排序结果
 	df = pd.concat([df1, df2], ignore_index=True)
 
@@ -248,7 +251,7 @@ all_select_df['offset'] = all_select_df['candle_begin_time'].apply(lambda x: int
 # ===资金曲线
 all_select_df['资金曲线'] = (all_select_df['本周期多空涨跌幅'] + 1).cumprod()
 rtn, select_c = ind.cal_ind(all_select_df)
-print(rtn)
+print(rtn.to_markdown())
 print('\n')
 tools.plot(select_c, mdd_std=0.2)
 

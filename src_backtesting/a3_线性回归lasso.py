@@ -27,6 +27,9 @@ def gen_selected(df, select_coin_num):
     df2 = df2[(df2['排名2'] <= select_coin_num)]
     df2['方向'] = -1
 
+    del df2['排名2']
+    del df1['排名1']
+
     # 合并排序结果
     df = pd.concat([df1, df2], ignore_index=True)
 

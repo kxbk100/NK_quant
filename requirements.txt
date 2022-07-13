@@ -36,10 +36,10 @@ setuptools-scm==6.3.2
 six==1.16.0
 statsmodels==0.12.2
 supervisor==4.2.2
-TA-Lib==0.4.19
 threadpoolctl==3.0.0
 tomli==1.2.2
 typing_extensions==4.0.1
 urllib3==1.26.7
 yarl==1.7.2
 tqdm==4.64.0
+TA-Lib==0.4.19

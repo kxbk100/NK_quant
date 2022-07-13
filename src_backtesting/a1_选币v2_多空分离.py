@@ -169,7 +169,8 @@ select_coin = gen_selected(df, select_coin_num)
 #select_coin['offset'] = select_coin['candle_begin_time'].apply(lambda x: x.to_pydatetime().hour%int(hold_hour[:-1]))
 select_coin['offset'] = select_coin['candle_begin_time'].apply(lambda x: int(((x.to_pydatetime() - pd.to_datetime('2017-01-01')).total_seconds()/3600)%int(hold_hour[:-1])))
 
-"""
+temp = pd.DataFrame()
+# """
 # ===显示所有offset资金曲线
 for offset, g_df in select_coin.groupby('offset'):
 	g_df.sort_values(by='candle_begin_time', inplace=True)
@@ -180,14 +181,15 @@ for offset, g_df in select_coin.groupby('offset'):
 	select_c['资金曲线'] = (select_c['本周期多空涨跌幅'] + 1).cumprod()
 
 	rtn, select_c = ind.cal_ind(select_c)
-	print(rtn)
+	temp = temp.append(rtn, ignore_index=True)
+	# print(rtn)
 	ax = plt.subplot(int(hold_hour[:-1]), 1, offset + 1)
 	ax.plot(select_c['candle_begin_time'], select_c['资金曲线'])
 
 plt.gcf().autofmt_xdate()
 plt.show()
-exit()
-#"""
+# exit()
+# """
 
 # ===计算涨跌幅
 all_select_df = tools.evaluate(select_coin, c_rate, select_coin_num)
@@ -195,7 +197,9 @@ all_select_df = tools.evaluate(select_coin, c_rate, select_coin_num)
 all_select_df['本周期多空涨跌幅'] = all_select_df['本周期多空涨跌幅']/int(hold_hour[:-1])
 all_select_df['资金曲线'] = (all_select_df['本周期多空涨跌幅'] + 1).cumprod()
 rtn, select_c = ind.cal_ind(all_select_df)
-print(rtn)
+temp = temp.append(rtn)
+print(temp.to_markdown())
+# print(rtn)
 print('\n')
 tools.plot(select_c, mdd_std=0.2)
 

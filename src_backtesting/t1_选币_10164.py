@@ -167,22 +167,26 @@ def evaluate(df, ret_1h, hold_hour, c_rate, select_coin_num):
 #==================================================================
 #==================================================================
 
-start_date = '2020-06-01'
-end_date   = '2021-02-01'
+start_date = '2021-01-27'
+end_date   = '2022-01-27'
 
 header_columns  = ['candle_begin_time', 'symbol', 'ret_next']
 select_coin_num = 1
 c_rate 			= 6/10000
 trade_type 		= 'swap'
-hold_hour  		= '6H'    
+hold_hour  		= '8H'
 filter_list     = [
 	#'AdaptBolling_fl_100', 
 	#'ZH_涨跌幅_fl_4', 
 	#'ZH_震幅_fl_4', 
 ]
+
 factor_list     = [
-	('Bias', False, 4, 0, 1.0),('Cci', True, 36, 0, 0.3)
+	('Rccd', True, 4, 0, 0.4648013970261202), ('Rccd', True, 8, 0, -1.9050217102405334),
+	('Rccd', True, 6, 0, -2.3213497274744435), ('ZhenFu_v2', True, 3, 0, 0.453106654728121),
+	('ZhenFu_v2', True, 24, 0, 0.47417107361612837), ('Rccd', True, 3, 0, 0.8979643661382151),
 ]
+
 
 
 
@@ -222,7 +226,9 @@ print('整合资金费率完毕!!!\n')
 
 # ===计算因子
 # 横截面
-df = tools.cal_factor_by_cross(df, factor_list)
+# df = tools.cal_factor_by_cross(df, factor_list)
+# 纵截面
+df = tools.cal_factor_by_verical(df, factor_list)
 # ===选币
 select_coin = gen_selected(df, select_coin_num)
 # ===计算涨跌幅
@@ -234,7 +240,8 @@ all_select_df['offset'] = all_select_df['candle_begin_time'].apply(lambda x: int
 # ===资金曲线
 all_select_df['资金曲线'] = (all_select_df['本周期多空涨跌幅'] + 1).cumprod()
 rtn, select_c = ind.cal_ind(all_select_df)
-print(rtn)
+# print(rtn)
+print(rtn.to_markdown())
 print('\n')
 tools.plot(select_c, mdd_std=0.2)
 
