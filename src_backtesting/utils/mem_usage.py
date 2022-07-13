@@ -66,8 +66,9 @@ def reduce_mem_usage(df, feature_list, njobs=8, verbose=True):
       print("Memory usage of the dataframe before converted is :", start_mem, "MB")
 
    results = Parallel(n_jobs=njobs)(delayed(reduce_mem_series)(df[f]) for f in tqdm(feature_list, desc='cal col in df'))
-   head_columns = ['candle_begin_time', 'symbol', 'ret_next', 'AdaptBolling_fl_100', 'ZH_涨跌幅_fl_4', 'ZH_震幅_fl_4']
-   _df = df[head_columns]
+   # head_columns = ['candle_begin_time', 'symbol', 'ret_next', 'AdaptBolling_fl_100', 'ZH_涨跌幅_fl_4', 'ZH_震幅_fl_4']
+   # _df = df[head_columns]
+   _df = df.copy()
    for col in tqdm(results, desc='join col to df'):
       _df[col.name] = col
 
@@ -77,8 +78,8 @@ def reduce_mem_usage(df, feature_list, njobs=8, verbose=True):
    if verbose:
       print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (start_mem - end_mem) / start_mem))
    print('完成', '用时：', round(time() - starttime, 6), 's')
-   print(df)
-   print(_df)
+   # print(df)
+   # print(_df)
    del df
    return _df
 
