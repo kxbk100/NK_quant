@@ -87,10 +87,10 @@ def gen_selected(df, select_coin_num, long_weight, short_weight, before_handler,
 def convert_to_feature(factor_list):
 	feature_list = set()
 	for factor_name, if_reverse, back_hour, d_num, weight in factor_list:
-	    if d_num == 0:
-	        feature_list.add(f'{factor_name}_bh_{back_hour}')
-	    else:
-	        feature_list.add(f'{factor_name}_bh_{back_hour}_diff_{d_num}')
+		if d_num == 0:
+			feature_list.add(f'{factor_name}_bh_{back_hour}')
+		else:
+			feature_list.add(f'{factor_name}_bh_{back_hour}_diff_{d_num}')
 
 	return list(feature_list)
 
@@ -105,41 +105,41 @@ def convert_to_filter(filter_list):
 
 # 纵截面
 def cal_factor_by_verical(df, factor_list, factor_tag='因子'):
-    feature_list = []
-    coef_        = []
-    for factor_name, if_reverse, back_hour, d_num, weight in factor_list:
-        reverse_ = -1 if if_reverse else 1
-        if d_num == 0:
-            _factor = f'{factor_name}_bh_{back_hour}'
-        else:
-            _factor = f'{factor_name}_bh_{back_hour}_diff_{d_num}'
-        feature_list.append(_factor)
-        coef_.append(weight * reverse_)
-    coef_ = pd.Series(coef_, index=feature_list)
-    df[f'{factor_tag}'] = df[feature_list].dot(coef_.T)
-    return df
+	feature_list = []
+	coef_        = []
+	for factor_name, if_reverse, back_hour, d_num, weight in factor_list:
+		reverse_ = -1 if if_reverse else 1
+		if d_num == 0:
+			_factor = f'{factor_name}_bh_{back_hour}'
+		else:
+			_factor = f'{factor_name}_bh_{back_hour}_diff_{d_num}'
+		feature_list.append(_factor)
+		coef_.append(weight * reverse_)
+	coef_ = pd.Series(coef_, index=feature_list)
+	df[f'{factor_tag}'] = df[feature_list].dot(coef_.T)
+	return df
 
 
 # 横截面
 def cal_factor_by_cross(df, factor_list, factor_tag='因子', pct_enable=False):
-    feature_list = convert_to_feature(factor_list)
-    # ===数据预处理
-    df = df.set_index(['candle_begin_time', 'symbol']).sort_index()
-    # 横截面排名
-    df[feature_list] = df.groupby('candle_begin_time')[feature_list].apply(lambda x:x.rank(pct=pct_enable, ascending=True))
-    df[feature_list] = df.groupby('candle_begin_time')[feature_list].apply(lambda x:x.fillna(x.median()))
-    df.reset_index(inplace=True)
+	feature_list = convert_to_feature(factor_list)
+	# ===数据预处理
+	df = df.set_index(['candle_begin_time', 'symbol']).sort_index()
+	# 横截面排名
+	df[feature_list] = df.groupby('candle_begin_time')[feature_list].apply(lambda x:x.rank(pct=pct_enable, ascending=True))
+	df[feature_list] = df.groupby('candle_begin_time')[feature_list].apply(lambda x:x.fillna(x.median()))
+	df.reset_index(inplace=True)
 
-    return cal_factor_by_verical(df, factor_list)
+	return cal_factor_by_verical(df, factor_list)
 
 
 def cal_one_factors(df, all_factor_list, all_filter_list, run_time, hold_period):
 	# 计算因子
 	for factor, if_reverse, back_hour, d_num, weight in all_factor_list:
 		if d_num == 0:
-		    _factor_name = f'{factor}_bh_{back_hour}'
+			_factor_name = f'{factor}_bh_{back_hour}'
 		else:
-		    _factor_name = f'{factor}_bh_{back_hour}_diff_{d_num}'   
+			_factor_name = f'{factor}_bh_{back_hour}_diff_{d_num}'
 		_cls = __import__('factors.%s' % factor,  fromlist=('', ))
 		df   = getattr(_cls, 'signal')(df, int(back_hour), d_num, _factor_name)
 

@@ -48,7 +48,12 @@ def run():
 
 		# 获取U本位合约账户净值(不包含未实现盈亏)
 		if debug:
-			equity = 100000
+			# 测试计算
+			# equity = 1000
+			# 真实账户
+			balance    = robust(exchange.fapiPrivate_get_balance, func_name='fapiPrivate_get_balance')  # 获取账户净值
+			balance    = pd.DataFrame(balance)
+			equity     = float(balance[balance['asset'] == 'USDT']['balance'])			
 		else:
 			balance    = robust(exchange.fapiPrivate_get_balance, func_name='fapiPrivate_get_balance')  # 获取账户净值
 			balance    = pd.DataFrame(balance)
@@ -117,8 +122,12 @@ def run():
 			if not debug:
 				place_order(exchange, twap_symbol_info_list[i], symbol_last_price, min_qty, price_precision, min_notional)
 			else:
-				print('测试拆单', twap_symbol_info_list[i])
-				continue
+				# 测试计算
+				# print('测试拆单', twap_symbol_info_list[i])
+				# continue
+				# 真实账户
+				place_order(exchange, twap_symbol_info_list[i], symbol_last_price, min_qty, price_precision, min_notional)
+
 			# =====idle
 			if i < len(twap_symbol_info_list) - 1 :
 				print(f'Twap {twap_interval} s 等待')
@@ -126,6 +135,13 @@ def run():
 
 		if not debug:
 			replenish_bnb(exchange, balance)
+		else:
+			# 测试计算
+			# exit()			
+			# 真实账户
+			replenish_bnb(exchange, balance)
+			exit()
+		
 
 		# 清理数据
 		del symbol_candle_data, select_coin, symbol_info

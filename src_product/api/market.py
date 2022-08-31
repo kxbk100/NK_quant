@@ -113,11 +113,11 @@ def fetch_fundingrate(exchange):
 
 # 获取币安的ticker数据
 def fetch_binance_ticker_data(exchange):
-    tickers = robust(exchange.fapiPublic_get_ticker_24hr, func_name='fapiPublic_get_ticker_24hr')
+    tickers = robust(exchange.fapiPublic_get_ticker_price, func_name='fapiPublic_get_ticker_price')
     tickers = pd.DataFrame(tickers, dtype=float)
     tickers.set_index('symbol', inplace=True)
 
-    return tickers['lastPrice']
+    return tickers['price']
 
 
 

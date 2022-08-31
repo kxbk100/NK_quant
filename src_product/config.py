@@ -42,6 +42,29 @@ stratagy_list = [
 		"hold_period": "6H",
 		"type":        "横截面",
 		"factors": [
+			('Bias', False, 4, 0, 1.0)
+		],
+		"filters": [
+			('AdaptBolling', 100)
+		],		
+		"filters_handle": {
+			"before": 'filter_before',
+			'after':  'default_handler',
+		},		
+		"long_weight":       1,
+		"short_weight":      1,
+		"select_coin_num":   1,
+	},
+]
+
+'''
+# ===策略配置
+stratagy_list = [
+	{
+		"c_factor":    "c_factor1",  
+		"hold_period": "6H",
+		"type":        "横截面",
+		"factors": [
 			('Bias', False, 4, 0, 1.0),('Cci', True, 36, 0, 0.3)
 		],
 		"filters": [
@@ -105,6 +128,7 @@ stratagy_list = [
 	},
 
 ]
+'''
 
 class QuantConfig:
 	def __init__(self, apiKey, secret, proxy, njob1, njob2, trade_ratio, min_kline_size, black_list,
