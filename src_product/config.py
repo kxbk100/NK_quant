@@ -173,7 +173,7 @@ class QuantConfig:
 		exchange = self.exchange
 		# 获取账户净值
 		exchange_info = robust(exchange.fapiPublic_get_exchangeinfo, func_name='fapiPublic_get_exchangeinfo')  
-		_symbol_list  = [x['symbol'] for x in exchange_info['symbols']]
+		_symbol_list  = [x['symbol'] for x in exchange_info['symbols'] if x['status'] == 'TRADING']
 		symbol_list   = [symbol for symbol in _symbol_list if symbol.endswith('USDT')]
 
 		_temp_list = []

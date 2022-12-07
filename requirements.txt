@@ -3,7 +3,7 @@ aiohttp==3.8.1
 aiosignal==1.2.0
 async-timeout==4.0.1
 attrs==21.2.0
-ccxt==1.63.11
+ccxt==2.2.79
 certifi==2021.10.8
 cffi==1.15.0
 charset-normalizer==2.0.9
@@ -42,3 +42,4 @@ typing_extensions==4.0.1
 urllib3==1.26.7
 yarl==1.7.2
 tqdm==4.64.0
+tabulate==0.8.9
