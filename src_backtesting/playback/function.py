@@ -4,11 +4,11 @@ import os
 _ = os.path.abspath(os.path.dirname(__file__))  # 返回当前文件路径
 root_path = os.path.abspath(os.path.join(_, '../'))  # 返回根目录文件夹
 sys.path.append(root_path)
-# from config import root_path
-# from utils import reader, tools, ind
+from config import root_path
+from utils import reader, tools, ind
 
-from src_backtesting.config import root_path
-from src_backtesting.utils import reader, tools, ind
+# from src_backtesting.config import root_path
+# from src_backtesting.utils import reader, tools, ind
 
 import math
 import platform
