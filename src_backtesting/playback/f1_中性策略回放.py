@@ -1,17 +1,22 @@
 from job import playback_start, playCfg, partial
 from function import filter_generate,parallel_filter_handle
 from signals import *
+from pprint import pprint
 
 compound_name = 'adaptV3'  # name
 # ===常规配置
 cal_factor_type = 'cross' # corss/ verical
+
 start_date = '2021-01-01'
 end_date = '2022-11-20'
-factor_list1 = [('AdaptBollingv3', True, 96, 0, 0.5)]
-factor_list2 = [('AdaptBollingv3', True, 96, 0, 0.5)]
+
+factor_list1 = [('MtmMean', True, 100, 0, 1.0)]
+factor_list2 = [('MtmMean', True, 100, 0, 1.0)]
+
+
 trade_type = 'swap'
 playCfg['c_rate'] = 6 / 10000  # 手续费
-playCfg['hold_hour_num'] = 12  # hold_hour
+playCfg['hold_hour_num'] = 1  # hold_hour
 # 只跑指定的N个offset,空列表则全offset
 long_select_offset = []
 short_select_offset = []
@@ -36,36 +41,64 @@ short_black_list = []
 # ===过滤配置(元素皆为字符串，仿照e.g.写即可 支持 & |)
 # 前置过滤 筛选出选币的币池
 # 写法1
-filter_before_exec = [
-    # filter_generate(direction='df1', filter_factor='Volume_fl_48', filter_type='pct', filter_value=0.3,
-    #                 compare_operator='gte', rank_ascending=False),
-    # filter_generate(direction='short', filter_factor='Volume_fl_48', filter_type='pct', filter_value=0.3,
-    #                 compare_operator='gte', rank_ascending=False),
-]
-
-# 写法2
-filter_before_params = [
-    ['df1', '涨跌幅max_fl_24', 'value', 0.2, 'lte', False],
-    ['df2', '涨跌幅max_fl_24', 'value', 0.2, 'lte', False],
-]
-filter_before_exec = [filter_generate(param=param) for param in filter_before_params]
-
-# 将默认的串联过滤转化为并联，只针对前置过滤且有使用了rank/pct类型的过滤集，value类型串并联无影响
+# filter_before_exec = [
+#     filter_generate(direction='df1', filter_factor='Volume_fl_48', filter_type='pct', filter_value=0.3,
+#                     compare_operator='gte', rank_ascending=False),
+#     filter_generate(direction='short', filter_factor='Volume_fl_48', filter_type='pct', filter_value=0.3,
+#                     compare_operator='gte', rank_ascending=False),
+#     filter_generate(direction='df1', filter_factor='Volume_fl_24', filter_type='pct', filter_value=0.3,
+#                     compare_operator='gte', rank_ascending=False),
+#     filter_generate(direction='short', filter_factor='Volume_fl_24', filter_type='pct', filter_value=0.3,
+#                     compare_operator='gte', rank_ascending=False),
+# ]
+# # 将默认的串联过滤转化为并联，只针对前置过滤且有使用了rank/pct类型的过滤集，value类型串并联无影响
 # filter_before_exec = parallel_filter_handle(filter_before_exec)
 
-filter_info = """filter_factor = ['涨跌幅max_fl_24'][0]
-df1 = df1[df1[f'涨跌幅max_fl_24']<0.2]
-filter_factor = ['涨跌幅max_fl_24'][0]
-df2 = df2[df2[f'涨跌幅max_fl_24']<0.2]
+
+
+filter_before_exec = [
+# """
+# filter_factor = ['涨跌幅max_fl_24'][0]
+# df1 = df1[(df1[filter_factor] <= 0.4)]
+# df2 = df2[(df2[filter_factor] <= 0.4)]
+# """,
+]
+
+# filter_before_exec = parallel_filter_handle(filter_before_exec)
+
+# 写法2
+# filter_before_params = [
+#     ['df1', '涨跌幅max_fl_24', 'value', 0.2, 'lte', False],
+#     ['df2', '涨跌幅max_fl_24', 'value', 0.2, 'lte', False],
+# ]
+# filter_before_exec = [filter_generate(param=param) for param in filter_before_params]
+
+filter_before_exec = [
 """
-filter_before_exec = [filter_info]
+filter_factor = ['涨跌幅max_fl_24'][0]
+df1 = df1[(df1[filter_factor] <= 0.4)]
+df2 = df2[(df2[filter_factor] <= 0.4)]
+feature = ['Volume_fl_24'][0]
+df1[feature + '降序'] = df1.groupby('candle_begin_time')[feature].apply(
+                lambda x: x.rank(pct=False, ascending=False, method='first'))
+df2[feature + '降序'] = df2.groupby('candle_begin_time')[feature].apply(
+                lambda x: x.rank(pct=False, ascending=False, method='first'))
+df1 = df1[df1[feature + '降序'] <= 20]
+df2 = df2[df2[feature + '降序'] <= 20]
+"""
+]
+
+# filter_before_params = [
+#     ['df1', 'Volume_fl_24', 'rank', 20, 'lte', False],
+#     ['df2', 'Volume_fl_24', 'rank', 20, 'lte', False],
+# ]
+# filter_before_exec = [filter_generate(param=param) for param in filter_before_params]
+
 
 
 # 后置过滤 在选币后下单前控制选定币种的资金分配系数
-filter_after_exec = [
-    # filter_generate(direction='df2', filter_factor='fundingRate', filter_type='value', filter_value=-0.0001,
-    #                 compare_operator='lte', rank_ascending=False, filter_after=True,weight_ratio=0),
-]
+filter_after_exec = []
+
 
 # ===花式配置
 # 资金曲线择时:(param[-1] 默认为计算signal需要的最少小时数)
