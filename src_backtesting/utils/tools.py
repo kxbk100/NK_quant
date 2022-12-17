@@ -6,6 +6,19 @@ import pandas as pd
 import numpy  as np
 import matplotlib.pyplot as plt
 
+def sma(ser: pd.Series, n, m=1) -> list:
+    ser.fillna(value=0, inplace=True)
+    # SMA(X,N,M) = M/N*X+(N-M)/N*REF(SMA,1)
+    _l = []
+    for i, v in enumerate(ser):
+        if i == 0:
+            _l.append(v)
+        else:
+            r = m / n
+            _l.append(r * v + (1 - r) * _l[-1])
+
+    return _l
+    
 
 def convert_to_filter_cls(fliter_list):
 	cls_list = set()
