@@ -8,7 +8,7 @@ import pandas as pd
 from glob import glob
 from datetime import datetime, timedelta
 from joblib import Parallel, delayed
-from utils  import diff
+from utils  import diff,reader
 
 pd_display_rows  = 20
 pd_display_cols  = 8
@@ -72,6 +72,18 @@ def run(trade_type, njobs=16):
         df.sort_values(by='candle_begin_time', inplace=True)
         df.drop_duplicates(subset=['candle_begin_time'], inplace=True, keep='last') 
         df['下个周期_avg_price'] = df['avg_price'].shift(-1)  # 计算下根K线开盘买入涨跌幅
+
+        '''如果需要 Funding Rate，请下载完数据，再打开注释   
+
+        fundingrate_data = reader.read_fundingrate()
+        df = pd.merge(df, 
+            fundingrate_data[['candle_begin_time', 'symbol', 'fundingRate']], 
+            on=['candle_begin_time', 'symbol'], how="left")
+
+        df['fundingRate'].fillna(value=0, inplace=True)
+        '''
+
+
         df.reset_index(drop=True, inplace=True)
 
         '''串行

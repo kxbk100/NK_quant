@@ -10,8 +10,11 @@ cal_factor_type = 'cross' # corss/ verical
 start_date = '2021-01-01'
 end_date = '2022-11-20'
 
-factor_list1 = [('MtmMean', True, 100, 0, 1.0)]
-factor_list2 = [('MtmMean', True, 100, 0, 1.0)]
+# factor_list1 = [('MaConverge', True, 110, 0, 1.0)]
+# factor_list2 = [('MaConverge', True, 110, 0, 1.0)]
+
+factor_list1 = [('Bias_v10', True, 140, 0, 1.0)]
+factor_list2 = [('Bias_v10', True, 140, 0, 1.0)]
 
 
 trade_type = 'swap'
@@ -34,43 +37,28 @@ playCfg['initial_trade_usdt'] = 10000  # 初始投入，金额过小会导致某
 # 固定白名单 'BTCUSDT'
 long_white_list = []
 short_white_list = []
+
+# short_white_list = ['BTCUSDT','ETHUSDT','BNBUSDT']
+
 # 固定黑名单
 long_black_list = []
 short_black_list = []
 
-# ===过滤配置(元素皆为字符串，仿照e.g.写即可 支持 & |)
-# 前置过滤 筛选出选币的币池
-# 写法1
-# filter_before_exec = [
-#     filter_generate(direction='df1', filter_factor='Volume_fl_48', filter_type='pct', filter_value=0.3,
-#                     compare_operator='gte', rank_ascending=False),
-#     filter_generate(direction='short', filter_factor='Volume_fl_48', filter_type='pct', filter_value=0.3,
-#                     compare_operator='gte', rank_ascending=False),
-#     filter_generate(direction='df1', filter_factor='Volume_fl_24', filter_type='pct', filter_value=0.3,
-#                     compare_operator='gte', rank_ascending=False),
-#     filter_generate(direction='short', filter_factor='Volume_fl_24', filter_type='pct', filter_value=0.3,
-#                     compare_operator='gte', rank_ascending=False),
-# ]
-# # 将默认的串联过滤转化为并联，只针对前置过滤且有使用了rank/pct类型的过滤集，value类型串并联无影响
-# filter_before_exec = parallel_filter_handle(filter_before_exec)
-
-
-
-filter_before_exec = [
-# """
-# filter_factor = ['涨跌幅max_fl_24'][0]
-# df1 = df1[(df1[filter_factor] <= 0.4)]
-# df2 = df2[(df2[filter_factor] <= 0.4)]
-# """,
-]
-
-# filter_before_exec = parallel_filter_handle(filter_before_exec)
-
-# 写法2
 # filter_before_params = [
-#     ['df1', '涨跌幅max_fl_24', 'value', 0.2, 'lte', False],
-#     ['df2', '涨跌幅max_fl_24', 'value', 0.2, 'lte', False],
+#     ['df1', '涨跌幅max_fl_24', 'value', 0.4, 'lte', False],    # 拉黑渣币
+#     ['df2', '涨跌幅max_fl_24', 'value', 0.4, 'lte', False],    # 拉黑渣币
 # ]
+# filter_before_exec = [filter_generate(param=param) for param in filter_before_params]
+
+
+# # 写法2
+# filter_before_params = [
+#     ['df1', 'VolumeStd_fl_72', 'pct', 0.1, 'lte', False],
+#     ['df2', 'VolumeStd_fl_72', 'pct', 0.9, 'gte', False],
+#     ['df1', '涨跌幅max_fl_24', 'value', 0.3, 'lte', False],
+#     ['df2', '涨跌幅max_fl_24', 'value', 0.3, 'lte', False],
+# ]
+#
 # filter_before_exec = [filter_generate(param=param) for param in filter_before_params]
 
 filter_before_exec = [
@@ -78,21 +66,70 @@ filter_before_exec = [
 filter_factor = ['涨跌幅max_fl_24'][0]
 df1 = df1[(df1[filter_factor] <= 0.4)]
 df2 = df2[(df2[filter_factor] <= 0.4)]
+
+
 feature = ['Volume_fl_24'][0]
 df1[feature + '降序'] = df1.groupby('candle_begin_time')[feature].apply(
                 lambda x: x.rank(pct=False, ascending=False, method='first'))
+df1 = df1[df1[feature + '降序'] <= 30]
 df2[feature + '降序'] = df2.groupby('candle_begin_time')[feature].apply(
                 lambda x: x.rank(pct=False, ascending=False, method='first'))
-df1 = df1[df1[feature + '降序'] <= 20]
-df2 = df2[df2[feature + '降序'] <= 20]
+df2 = df2[df2[feature + '降序'] <= 30]
+
+rate = ['fundingRate'][0]
+feature = ['费率min_fl_24'][0]
+df2[feature + '升序'] = df2.groupby('candle_begin_time')[feature].apply(
+                lambda x: x.rank(pct=False, ascending=True, method='first'))
+df2 = df2[(df2[feature + '升序'] >= 10) | (df2[rate] >= 0)]
+
+feature = ['费率max_fl_24'][0]
+df1[feature + '降序'] = df1.groupby('candle_begin_time')[feature].apply(
+                lambda x: x.rank(pct=False, ascending=False, method='first'))
+df1 = df1[(df1[feature + '降序'] >= 10) | (df1[rate] <= 0)]
+
+
+
 """
 ]
 
+
+# feature = ['Volume_fl_24'][0]
+# df1[feature + '降序'] = df1.groupby('candle_begin_time')[feature].apply(
+#                 lambda x: x.rank(pct=False, ascending=False, method='first'))
+# df1 = df1[df1[feature + '降序'] <= 30]
+# df2[feature + '降序'] = df2.groupby('candle_begin_time')[feature].apply(
+#                 lambda x: x.rank(pct=False, ascending=False, method='first'))
+# df2 = df2[df2[feature + '降序'] <= 30]
+
+
+
+
+
+# fundingRate = "fundingRate"
+# feature_long = "费率max_fl_24"
+# feature_short = "费率min_fl_24"
+# n = 24
+# df1[feature_long] = df1[fundingRate].rolling(n).max()
+# df2[feature_short] = df1[fundingRate].rolling(n).min()
+#
+# df2[feature_short + '升序'] = df2.groupby('candle_begin_time')[feature_short].apply(
+#                 lambda x: x.rank(pct=True, ascending=True, method='first'))
+# df2 = df2[(df2[feature_short + '升序'] >= 10) | (df2[rate] >= 0)]
+#
+# df1[feature_long + '降序'] = df1.groupby('candle_begin_time')[feature_long].apply(
+#                 lambda x: x.rank(pct=True, ascending=False, method='first'))
+# df1 = df1[(df1[feature_long + '降序'] >= 10) | (df1[rate] <= 0)]
+
+
 # filter_before_params = [
-#     ['df1', 'Volume_fl_24', 'rank', 20, 'lte', False],
-#     ['df2', 'Volume_fl_24', 'rank', 20, 'lte', False],
+#     ['df1', 'VolumeStd_fl_72', 'pct', 0.1, 'lte', False],
+#     ['df1', '涨跌幅max_fl_24', 'value', 0.3, 'lte', False],
+#     ['df2', 'VolumeStd_fl_72', 'pct', 0.9, 'gte', False],
+#     ['df2', '涨跌幅max_fl_24', 'value', 0.3, 'lte', False],
 # ]
+
 # filter_before_exec = [filter_generate(param=param) for param in filter_before_params]
+
 
 
 

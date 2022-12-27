@@ -25,7 +25,7 @@ def get_all_symbols(exchange, trade_type):
 	elif trade_type== 'spot':
 		exchange_info = robust(exchange.public_get_exchangeinfo,)
 	else:
-		raise ValuseError(f'trade_type {trade_type} error!!!')
+		raise ValueError(f'trade_type {trade_type} error!!!')
 
 	_symbol_list  = [x['symbol'] for x in exchange_info['symbols']]
 	symbol_list   = [symbol for symbol in _symbol_list if symbol.endswith('USDT')]	
@@ -42,6 +42,7 @@ def get_funding_rate(exchange, symbol, start_time, end_time, retry_times=5):
 		'end_time':  et,
 		'limit':     1000,
 	}
+
 	alldata = pd.DataFrame()
 	while True:
 		try:

@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import os
-import pandas as pd
-import numpy  as np
-from glob   import glob
-from joblib import Parallel, delayed
+import time
+from glob import glob
 
+import pandas as pd
 from config import pickle_path, data_path, fundingrate_path
+from joblib import Parallel, delayed
 
 
 def get_factors_path(trade_type, factor_class_list):
@@ -19,12 +19,12 @@ def get_factors_path(trade_type, factor_class_list):
         if class_name in factor_class_list:
             if symbol not in result.keys():
                 result[symbol] = []
-            result[symbol].append(path)  
+            result[symbol].append(path)
 
-    return result  
+    return result
 
 
-def read_one(trade_type, hold_hour, symbol, path_list, filter_class_list, date_range=()):
+def read_one(trade_type, hold_hour, symbol, path_list, filter_class_list, date_range=(), cut_leading=999):
     df = pd.read_feather(os.path.join(data_path, trade_type, symbol, 'coin_alpha_head.pkl'))
 
     # 读因子文件
@@ -46,17 +46,18 @@ def read_one(trade_type, hold_hour, symbol, path_list, filter_class_list, date_r
 
     df.sort_values(by=['candle_begin_time', ], inplace=True)
     df.reset_index(drop=True, inplace=True)
-    #"""
+    # """
     # 删除前N行
-    df = df.iloc[999:]  
+    df = df.iloc[cut_leading:]
+    # df = df.iloc[9:]
     # 处理极端情况
     if df.empty: return
     df.reset_index(drop=True, inplace=True)
-    #"""
+    # """
 
     # ========以上是需要修改的代码
-    #df = df.loc[0:0, :].append(df, ignore_index=True)
-    #df.loc[0, 'candle_begin_time'] = pd.to_datetime('2010-01-01')
+    # df = df.loc[0:0, :].append(df, ignore_index=True)
+    # df.loc[0, 'candle_begin_time'] = pd.to_datetime('2010-01-01')
     # ===将数据转化为需要的周期
     df.set_index('candle_begin_time', inplace=True)
     # 必备字段
@@ -67,11 +68,11 @@ def read_one(trade_type, hold_hour, symbol, path_list, filter_class_list, date_r
         'volume': 'sum',
     }
     for f in feature_list + filter_list:
-        agg_dict[f] = 'first' 
+        agg_dict[f] = 'first'
 
     period_df_list = []
     for offset in range(int(hold_hour[:-1])):
-        period_df = df.resample(hold_hour, base=offset).agg(agg_dict)
+        period_df = df.resample(hold_hour, offset=offset).agg(agg_dict)
         period_df.reset_index(inplace=True)
         # 合并数据
         period_df_list.append(period_df)
@@ -92,9 +93,9 @@ def read_one(trade_type, hold_hour, symbol, path_list, filter_class_list, date_r
     period_df.reset_index(drop=True, inplace=True)
 
     return period_df
-    
 
-def readall(trade_type, hold_hour, factor_class_list, filter_class_list=[], njobs=16, date_range=()):
+
+def readall(trade_type, hold_hour, factor_class_list, filter_class_list=[], njobs=6, date_range=(), cut_leading=999):
     factor_paths = get_factors_path(trade_type, factor_class_list)
 
     '''串行
@@ -106,8 +107,8 @@ def readall(trade_type, hold_hour, factor_class_list, filter_class_list=[], njob
 
     # '''
     all_list = Parallel(n_jobs=njobs)(
-        delayed(read_one)(trade_type, hold_hour, symbol, path_list, filter_class_list, date_range)
-            for symbol, path_list in factor_paths.items()
+        delayed(read_one)(trade_type, hold_hour, symbol, path_list, filter_class_list, date_range, cut_leading)
+        for symbol, path_list in factor_paths.items()
     )
 
     all_df = pd.concat(all_list, ignore_index=True)
@@ -117,8 +118,7 @@ def readall(trade_type, hold_hour, factor_class_list, filter_class_list=[], njob
     return all_df
 
 
-
-def readhour(trade_type, factor_class_list, filter_class_list=[], njobs=16):
+def readhour(trade_type, factor_class_list, filter_class_list, njobs=6):
     def _read(trade_type, symbol, path_list, filter_class_list):
         df = pd.read_feather(os.path.join(data_path, trade_type, symbol, 'coin_alpha_head.pkl'))
 
@@ -126,24 +126,22 @@ def readhour(trade_type, factor_class_list, filter_class_list=[], njobs=16):
         feature_list = []
         for path in path_list:
             df_ = pd.read_feather(path)
-            for f in df_.columns:
-                df[f] = df_[f]
-                feature_list.append(f)
+            feature_list.append(df_)
+        df = pd.concat([df] + feature_list, axis=1)
         # 读过滤文件
         filter_list = []
         for filter_name in filter_class_list:
             filter_path = os.path.join(data_path, trade_type, symbol, f'coin_alpha_filter_{filter_name}.pkl')
             df_ = pd.read_feather(filter_path)
-            filter_columns = list(set(df_.columns))
-            for f in filter_columns:
-                df[f] = df_[f]
-                filter_list.append(f)
+            filter_list.append(df_)
+        df = pd.concat([df] + filter_list, axis=1)
+        # drop duplicate column
+        df = df.loc[:, ~df.columns.duplicated()]
 
         df.sort_values(by=['candle_begin_time', ], inplace=True)
         df.reset_index(drop=True, inplace=True)
         # 删除前N行
-        #df.drop(df.index[:999], inplace=True)
-        df = df.iloc[999:]  
+        df = df.iloc[999:]
         # 处理极端情况
         if df.empty: return
         df.reset_index(drop=True, inplace=True)
@@ -153,7 +151,7 @@ def readhour(trade_type, factor_class_list, filter_class_list=[], njobs=16):
 
     all_list = Parallel(n_jobs=njobs)(
         delayed(_read)(trade_type, symbol, path_list, filter_class_list)
-            for symbol, path_list in factor_paths.items()
+        for symbol, path_list in factor_paths.items()
     )
 
     all_df = pd.concat(all_list, ignore_index=True)
@@ -163,41 +161,37 @@ def readhour(trade_type, factor_class_list, filter_class_list=[], njobs=16):
     return all_df
 
 
-def readori(trade_type, njobs=16):
+def readori(trade_type, njobs=6):
     def _read(pkl_file):
         df = pd.read_feather(pkl_file)
         df.sort_values(by='candle_begin_time', inplace=True)
-        df.drop_duplicates(subset=['candle_begin_time'], inplace=True, keep='last') 
+        df.drop_duplicates(subset=['candle_begin_time'], inplace=True, keep='last')
         df.reset_index(drop=True, inplace=True)
         return df
 
     all_list = Parallel(n_jobs=njobs)(
         delayed(_read)(pkl_file)
-            for pkl_file in glob(os.path.join(pickle_path, f'{trade_type}', '*USDT.pkl'))
+        for pkl_file in glob(os.path.join(pickle_path, f'{trade_type}', '*USDT.pkl'))
     )
     all_df = pd.concat(all_list, ignore_index=True)
     all_df.sort_values(by=['candle_begin_time', 'symbol'], inplace=True)
     all_df.reset_index(drop=True, inplace=True)
-    return all_df  
+    return all_df
 
 
-def read_fundingrate(njobs=16):
+def read_fundingrate(njobs=6):
     def _read(pkl_file):
         df = pd.read_feather(pkl_file)
         df.sort_values(by='candle_begin_time', inplace=True)
-        df.drop_duplicates(subset=['candle_begin_time'], inplace=True, keep='last') 
+        df.drop_duplicates(subset=['candle_begin_time'], inplace=True, keep='last')
         df.reset_index(drop=True, inplace=True)
         return df
 
     all_list = Parallel(n_jobs=njobs)(
         delayed(_read)(pkl_file)
-            for pkl_file in glob(os.path.join(fundingrate_path, '*USDT.pkl'))
+        for pkl_file in glob(os.path.join(fundingrate_path, '*USDT.pkl'))
     )
     all_df = pd.concat(all_list, ignore_index=True)
     all_df.sort_values(by=['candle_begin_time', 'symbol'], inplace=True)
     all_df.reset_index(drop=True, inplace=True)
-    return all_df  
-
-    
-
-
+    return all_df
