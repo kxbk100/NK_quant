@@ -152,7 +152,7 @@ def cal_one_factors(df, all_factor_list, all_filter_list, run_time, hold_period)
 	# ===时间过滤
 	df = df[df['candle_begin_time'] >= (run_time - timedelta(hours=hold_period))]
 	# ===只保留有用字段
-	df = df[['candle_begin_time', 'symbol', 'close'] + convert_to_feature(all_factor_list) + convert_to_filter(all_filter_list)]
+	df = df[['candle_begin_time', 'symbol', 'close', 'fundingRate'] + convert_to_feature(all_factor_list) + convert_to_filter(all_filter_list)]
 
 	return df
 
@@ -176,6 +176,13 @@ def cal_factor_and_select_coin(symbol_candle_data, stratagy_list, run_time, njob
 		if len(df) < min_kline_size:
 			print('no enough data', symbol)
 			continue
+
+		from functions import get_fundingrate
+		# 整合资金费率数据
+		fundingrate_data = get_fundingrate()
+		df = pd.merge(df,
+					  fundingrate_data[['candle_begin_time', 'symbol', 'fundingRate']],
+					  on=['candle_begin_time', 'symbol'], how="left")
 		symbol_candle_datas[symbol] = df
 
 	# ===因子计算(并行)
@@ -237,7 +244,8 @@ def cal_factor_and_select_coin(symbol_candle_data, stratagy_list, run_time, njob
 		# ===时间过滤
 		df = df[df['candle_begin_time'] >= (run_time - timedelta(hours=int(hold_hour[:-1])))]
 		# ===只保留有用字段
-		df = df[['candle_begin_time', 'symbol', 'close', '因子'] + convert_to_filter(filter_list)]
+		df = df[['candle_begin_time', 'symbol', 'close', '因子', 'fundingRate'] + convert_to_filter(filter_list)]
+
 		# ===选币
 		df = gen_selected(df, select_coin_num, long_weight, short_weight, before_handler, after_handler)
 		# ===处理字段

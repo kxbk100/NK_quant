@@ -45,6 +45,8 @@ stratagy_list = [
 			('Bias', False, 4, 0, 1.0)
 		],
 		"filters": [
+			('费率min', 24),
+			('费率max', 24),
 			('AdaptBolling', 100)
 		],		
 		"filters_handle": {

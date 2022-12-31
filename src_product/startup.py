@@ -74,8 +74,8 @@ def run():
 		
 		# =====sleep直到下一个整点小时
 		if debug:
-			run_time = datetime.strptime('2021-12-23 16:00:00', "%Y-%m-%d %H:%M:%S")
-			#run_time = sleep_until_run_time('1h', if_sleep=False, cheat_seconds=0)
+			# run_time = datetime.strptime('2021-12-23 16:00:00', "%Y-%m-%d %H:%M:%S")
+			run_time = sleep_until_run_time('1h', if_sleep=False, cheat_seconds=0)
 		else:
 			run_time = sleep_until_run_time('1h', if_sleep=True,  cheat_seconds=0)
 
