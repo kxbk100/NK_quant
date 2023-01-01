@@ -141,6 +141,8 @@ feature_list      = tools.convert_to_feature(all_factor_list)
 
 # ===读取数据
 df = reader.readall(trade_type, hold_hour, factor_class_list, filter_class_list=filter_class_list, date_range=(start_date, end_date))
+df = reader.feature_shift(df, feature_list + filter_list)
+
 # 删除某些行数据
 df = df[df['volume'] > 0]  # 该周期不交易的币种
 df.dropna(subset=['下个周期_avg_price'], inplace=True)  # 最后几行数据，下个周期_avg_price为空

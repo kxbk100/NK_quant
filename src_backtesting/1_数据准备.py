@@ -151,7 +151,7 @@ def check_avg(trade_type):
 
 
 def run():
-    for trade_type in ['spot', 'swap']:
+    for trade_type in ['spot', 'swap'][1:]:
         results_5m = transfer_raw_data_2_pkl_data(trade_type, '5m')
         results_1m = transfer_raw_data_2_pkl_data(trade_type, '1m')
         merge_alldata(results_5m, results_1m, trade_type)

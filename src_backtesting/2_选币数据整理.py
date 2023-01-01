@@ -45,8 +45,6 @@ def cal_one_factor(df, class_name, back_hour_list, diff_list):
             factor_list.append(factor_name)  
             # 计算因子
             getattr(_cls, 'signal')(df, n, d_num, factor_name)
-            # 为了跟实盘保持一致 
-            df[factor_name] = df[factor_name].shift(1)
     """ ************************************************************ """
     factor_list.sort()
     df = df[head_columns + factor_list]
@@ -115,8 +113,8 @@ def run(trade_type, back_hour_list, diff_list, njobs=16):
 if __name__ == '__main__':
     back_hour_list  = [3, 4, 6, 8, 9, 12, 24, 30, 36, 48, 60, 72, 96]  
     # ===计算因子
-    for trade_type in ['spot', 'swap']:
-        run(trade_type, back_hour_list, diff_list=[0, 0.3, 0.5, 0.9])
+    for trade_type in ['spot', 'swap'][1:]:
+        run(trade_type, back_hour_list, diff_list=[0])
 
 
 

@@ -44,8 +44,7 @@ def cal_one_filter(df, filter_config):
         filter_list.append(filter_name)  
         # 计算因子
         getattr(_cls, 'signal')(df, params, filter_name)
-        # 为了跟实盘保持一致 
-        df[filter_name] = df[filter_name].shift(1)
+
     """ ************************************************************ """
     filter_list.sort()
     df = df[head_columns + filter_list]
@@ -113,7 +112,7 @@ def run(trade_type, njobs=16):
 if __name__ == '__main__':
     
     # ===计算因子
-    for trade_type in ['spot', 'swap']:
+    for trade_type in ['spot', 'swap'][1:]:
         run(trade_type)
 
 
