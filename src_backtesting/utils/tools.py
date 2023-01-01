@@ -57,11 +57,11 @@ def cal_factor_by_cross(df, factor_list, factor_tag='因子', pct_enable=False):
     df[feature_list] = df.groupby('candle_begin_time')[feature_list].apply(lambda x:x.fillna(x.median()))
     df.reset_index(inplace=True)
 
-    return cal_factor_by_verical(df, factor_list, factor_tag=factor_tag)
+    return cal_factor_by_vertical(df, factor_list, factor_tag=factor_tag)
 
 
 # 纵截面
-def cal_factor_by_verical(df, factor_list, factor_tag='因子'):
+def cal_factor_by_vertical(df, factor_list, factor_tag='因子'):
 	feature_list = []
 	coef_        = []
 	for factor_name, if_reverse, back_hour, d_num, weight in factor_list:
