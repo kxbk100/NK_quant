@@ -34,7 +34,7 @@ new_df = pd.DataFrame(min_qty_list)
 print(new_df)
 
 # 读取旧的数据
-min_qty_path = os.path.join(root_path, 'data', '最小下单量.csv')
+min_qty_path = os.path.join('最小下单量.csv')
 old_df = pd.read_csv(min_qty_path, encoding='gbk')
 
 # 数据合并
