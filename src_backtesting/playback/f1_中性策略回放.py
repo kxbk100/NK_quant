@@ -1,19 +1,19 @@
 import pprint
-
 from function import filter_generate, log, parallel_filter_handle
-from job import playback_start, playCfg
-tag = 'loc'
+from job import playback_start
+from environ import playCfg, RankAscending, FilterAfter, tag
 
-compound_name = 'Cbr_v1'  # name
+
+compound_name = 'AdaptBollingv3'  # name
 # ===常规配置
 cal_factor_type = 'cross'  # cross/ vertical
-start_date = '2022-01-01'
+start_date = '2020-01-01'
 end_date = '2022-11-20'
-factor_long_list = [('Cbr_v1', True, 96, 0, 0.5)]
-factor_short_list = [('Cbr_v1', True, 96, 0, 0.5)]
+factor_long_list = [('AdaptBollingv3', True, 96, 0, 1)]
+factor_short_list = [('AdaptBollingv3', True, 96, 0, 1)]
 trade_type = 'swap'
 playCfg['c_rate'] = 6 / 10000  # 手续费
-playCfg['hold_hour_num'] = 1  # hold_hour
+playCfg['hold_hour_num'] = 12  # hold_hour
 # 只跑指定的N个offset,空列表则全offset
 long_select_offset = []
 short_select_offset = []
@@ -44,23 +44,39 @@ short_black_list = []
 # 写法1
 
 filter_before_params = [
-    (['df1', 'Volume_fl_24', 'pct', 'gte', 0.5],
-    ['df1', 'Volume_fl_24', 'rank', 'lte', 30],
-     '1|2'),
-    ['df2', 'Volume_fl_24', 'pct', 'gte', 0.5],
-    ['df1', '涨跌幅max_fl_24', 'value', 'lte', 0.2],
-    ['df2', '涨跌幅max_fl_24', 'value', 'lte', 0.2],
-    (
-        ['df2', '费率min_fl_24', 'rank', 'gte', 10, True],
-        ['df2', 'fundingRate', 'value', 'gte', 0.01],
-        '1|2'
-    )
+
+    # ['df1', 'Volume_fl_24', 'rank', 'lte', 30, RankAscending.FALSE, FilterAfter.FALSE],
+    # ['df2', 'Volume_fl_24', 'rank', 'lte', 30, RankAscending.FALSE, FilterAfter.FALSE],
+    ['df1', '涨跌幅max_fl_24', 'value', 'lte', 0.2, RankAscending.FALSE, FilterAfter.FALSE],
+    ['df2', '涨跌幅max_fl_24', 'value', 'lte', 0.4, RankAscending.FALSE, FilterAfter.FALSE],
+
+    # (
+    #     ['df1', '费率max_fl_24', 'rank', 'gte', 5, RankAscending.FALSE, FilterAfter.FALSE],
+    #     ['df1', 'fundingRate', 'value', 'lte', 0.0001, RankAscending.FALSE, FilterAfter.FALSE],
+    #     '1|2'
+    # ),
+    # (
+    #     ['df2', '费率min_fl_24', 'rank', 'gte', 5, RankAscending.TRUE, FilterAfter.FALSE],
+    #     ['df2', 'fundingRate', 'value', 'gte', 0, RankAscending.FALSE, FilterAfter.FALSE],
+    #     '1|2'
+    # ),
+
+    # (
+    #     ['df1', '费率max_fl_24', 'pct', 'lte', 0.95, RankAscending.FALSE, FilterAfter.FALSE],
+    #     ['df1', 'fundingRate', 'value', 'lte', 0.0001, RankAscending.FALSE, FilterAfter.FALSE],
+    #     '1|2'
+    # ),
+    # (
+    #     ['df2', '费率min_fl_24', 'pct', 'gte', 0.05, RankAscending.FALSE, FilterAfter.FALSE],
+    #     ['df2', 'fundingRate', 'value', 'gte', 0, RankAscending.FALSE, FilterAfter.FALSE],
+    #     '1|2'
+    # )
 ]
-filter_before_exec = [filter_generate(param=param) for param in filter_before_params]
 
 filter_before_exec = [filter_generate(param=param) for param in filter_before_params]
 # 将默认的串联过滤转化为并联,只针对前置过滤且有使用了rank/pct类型的过滤集,value类型串并联无影响
-filter_before_exec, tag = parallel_filter_handle(filter_before_exec)
+# filter_before_exec, tag = parallel_filter_handle(filter_before_exec)
+
 
 # filter_info = """filter_factor = ['涨跌幅max_fl_24'][0]
 # df1 = df1[df1[f'涨跌幅max_fl_24']<0.2]
@@ -71,10 +87,11 @@ filter_before_exec, tag = parallel_filter_handle(filter_before_exec)
 
 
 # 后置过滤 在选币后下单前控制选定币种的资金分配系数
-filter_after_exec = [
-    # filter_generate(direction='df2', filter_factor='fundingRate', filter_type='value', filter_value=-0.0001,
-    #                 compare_operator='lte', rank_ascending=False, filter_after=True,weight_ratio=0),
+filter_after_params = [
+    # ['df2', 'fundingRate', 'value', 'lte', -0.0001, RankAscending.FALSE, FilterAfter.TRUE]
 ]
+filter_after_exec = [filter_generate(param=param) for param in filter_after_params]
+
 # ===花式配置
 # 资金曲线择时:(param[-1] 默认为计算signal需要的最少小时数)
 p_signal_fun = None
@@ -111,11 +128,10 @@ def main():
     if filter_before_exec:
         print('前置过滤源码：')
         [print(x, '\n') if tag in x else print(x) for x in filter_before_exec]
-    if filter_before_exec:
+    if filter_after_exec:
         print('后置过滤源码：')
         [print(x, '\n') if tag in x else print(x) for x in filter_after_exec]
     res = playback_start(playCfg, othCfg)
-
 
 if __name__ == '__main__':
     main()

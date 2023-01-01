@@ -14,35 +14,7 @@ pd.set_option('mode.chained_assignment', None)
 # warnings.filterwarnings("ignore")
 # FutureWarning
 simplefilter(action='ignore', category=FutureWarning)
-# ===常规配置
-config_type = np.dtype(
-    {
-        'names': [
-            'c_rate',
-            'hold_hour_num',
-            'long_coin_num',
-            'short_coin_num',
-            'long_p',
-            'short_p',
-            'leverage',
-            'long_risk_position',
-            'initial_trade_usdt',
-            'offset_stop_win',
-            'offset_stop_loss'],
-        'formats': [
-            np.float64,
-            np.int64,
-            np.int64,
-            np.int64,
-            np.float64,
-            np.float64,
-            np.float64,
-            np.float64,
-            np.float64,
-            np.float64,
-            np.float64,
-        ]})
-playCfg = np.zeros((1), dtype=config_type)
+
 
 
 def playback_start(playCfg, othCfg):
@@ -55,6 +27,7 @@ def playback_start(playCfg, othCfg):
     [filter_list.extend(re.findall(r"\['(.+?)'\]", x))
      for x in filter_before_exec + filter_after_exec]
     filter_list = list(set(filter_list))
+
     if 'fundingRate' in filter_list:
         use_fundingRate = True
         filter_list.remove('fundingRate')
@@ -62,6 +35,7 @@ def playback_start(playCfg, othCfg):
         use_fundingRate = False
     start_date = pd.to_datetime(start_date)
     end_date = pd.to_datetime(end_date)
+
     all_factor_list = factor_long_list + factor_short_list
     factor_class_list = tools.convert_to_cls(all_factor_list)
     filter_class_list = tools.convert_to_filter_cls(filter_list)

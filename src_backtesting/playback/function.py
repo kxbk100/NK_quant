@@ -1,6 +1,6 @@
 import os
 import sys
-
+import enum
 from loguru import logger as log
 
 _ = os.path.abspath(os.path.dirname(__file__))  # 返回当前文件路径
@@ -9,7 +9,7 @@ sys.path.append(root_path)
 
 from config import root_path,output_path
 from utils import tools, ind, reader
-cdn_num_ls = [1] * 4
+from environ import RankAscending, FilterAfter, cdn_num_ls
 # from src_backtesting.config import root_path
 # from src_backtesting.utils import reader, tools, ind
 
@@ -33,7 +33,6 @@ min_qty_path = os.path.join(_, '最小下单量.csv')
 rtn_data_path = os.path.join(output_path,'中性回放结果')
 
 eps = 1e-8
-
 
 def load_playCfg(playCfg):
     return playCfg['c_rate'][0], playCfg['hold_hour_num'][0], playCfg['long_coin_num'][0], playCfg['short_coin_num'][0], playCfg[
@@ -91,7 +90,12 @@ def filter_generate(direction: str = 'long', filter_factor: str = '涨跌幅max_
         assert filter_type in ['value', 'rank', 'pct']
         assert compare_operator in ['lt', 'lte', 'gt', 'gte', 'bt', 'bte', 'nbt', 'nbte', 'eq', 'ne']
         assert type(filter_factor) == str
+        if rank_ascending in RankAscending.__members__.values():
+            rank_ascending = rank_ascending.value
+        if filter_after in FilterAfter.__members__.values():
+            filter_after = filter_after.value
         assert rank_ascending in [True, False]
+        assert filter_after in [True, False]
         if compare_operator == 'eq':
             assert type(filter_value) in [float, int]
             compare_operator = 'bte'
@@ -156,6 +160,10 @@ def filter_generate(direction: str = 'long', filter_factor: str = '涨跌幅max_
         param = direction, filter_factor, filter_type,  compare_operator, filter_value, rank_ascending, filter_after, weight_ratio
     if type(param) == list:
         filter_after = False if len(param) < 7 else param[6]
+        if rank_ascending in RankAscending.__members__.values():
+            rank_ascending = rank_ascending.value
+        if filter_after in FilterAfter.__members__.values():
+            filter_after = filter_after.value
         try:
             rank_str, condition_str, dfx, num, weight_ratio = _str_generate(param)
         except Exception as e:
@@ -173,6 +181,8 @@ def filter_generate(direction: str = 'long', filter_factor: str = '涨跌幅max_
         logical_operators = param[-1]
         param = params_list[0]
         filter_after = False if len(param) < 7 else param[6]
+        if filter_after in FilterAfter.__members__.values():
+            filter_after = filter_after.value
         assert type(logical_operators) == str
         filter_res_list = []
         for x in params_list:
@@ -183,9 +193,11 @@ def filter_generate(direction: str = 'long', filter_factor: str = '涨跌幅max_
                 raise e
         if len(set([x[2] for x in filter_res_list])) != 1 : raise ValueError('df1 与 df2 不能进行逻辑运算')
         ref = filter_res_list[0][3] - 1
-        for i, filter_res in enumerate(filter_res_list):
+        for i, filter_res in enumerate(filter_res_list[::-1]):
+            i = len(filter_res_list) - i - 1
             dfx, num, weight_ratio = filter_res[2:]
             pre_fix = 'long_' if dfx == 'df1' else 'short_'
+            # print(i+1, i+1+ref)
             logical_operators = logical_operators.replace(str(i+1), f'{pre_fix}condition{i+1+ref}')
         if not filter_after:
             filter_str = f"{dfx} = {dfx}.loc[{logical_operators}]"
@@ -822,7 +834,16 @@ def np_gen_selected(df, base_index, filter_before_exec, filter_after_exec, selec
     time_length = len(df['time'].unique())
 
     # 前置过滤
+    # print(df1.groupby('time').size())
+    # print(df2.groupby('time').size())
+    # print(df1.groupby('time').size().min())
+
+
     df1, df2 = filter_before(df1, df2, filter_before_exec, white_list, black_list, replace_symbol_to_int)
+    # print(df1.groupby('time').size())
+    # print(df2.groupby('time').size())
+    # print(df1.groupby('time').size().min())
+
     time_length1 = len(df1['time'].unique())
     time_length2 = len(df2['time'].unique())
     filter_miss = False
