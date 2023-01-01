@@ -24,8 +24,16 @@ if __name__=='__main__':
 	host  = '127.0.0.1'
 	port  = 7890
 	proxy = {'http': 'http://%s:%d' % (host, port), 'https': 'http://%s:%d' % (host, port)}
-	exchange    = get_exchange(proxy)
-	symbol_list = get_all_symbols(exchange, 'swap')
+	# proxy = {}
+	exchange   = get_exchange(proxy)
+
+	swap_pickle_path = os.path.join(root_path, 'data', 'pickle_data', 'swap')
+	files = [x[2] for x in os.walk(swap_pickle_path)][0]
+	symbol_list = [x.split('.')[0].replace('-', '') for x in files]
+	symbol_list = [symbol for symbol in symbol_list if symbol.endswith('USDT')]
+	symbol_list.sort()
+
+	# symbol_list = get_all_symbols(exchange, 'swap')
 	#symbol_list = ['BTCUSDT']
 
 	st = datetime.strptime('2017-09-17 00:00:00', "%Y-%m-%d %H:%M:%S")
