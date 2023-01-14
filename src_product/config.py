@@ -36,7 +36,7 @@ workdir = './data'
 # 资金费率文件名
 fundingrate_filename = 'fundingRate.pkl'
 # ===策略配置
-stratagy_list = [
+strategy_list = [
 	{
 		"c_factor":    "c_factor1",  
 		"hold_period": "6H",
@@ -61,7 +61,7 @@ stratagy_list = [
 
 '''
 # ===策略配置
-stratagy_list = [
+strategy_list = [
 	{
 		"c_factor":    "c_factor1",  
 		"hold_period": "6H",
@@ -134,7 +134,7 @@ stratagy_list = [
 
 class QuantConfig:
 	def __init__(self, apiKey, secret, proxy, njob1, njob2, trade_ratio, min_kline_size, black_list,
-			max_one_order_amount, twap_interval, stratagy_list, debug=False):
+			max_one_order_amount, twap_interval, strategy_list, debug=False):
 		self._initialize    	  = False
 		self.apiKey 	    	  = apiKey
 		self.secret 	    	  = secret
@@ -146,7 +146,7 @@ class QuantConfig:
 		self.black_list 	      = black_list
 		self.max_one_order_amount = max_one_order_amount
 		self.twap_interval 		  = twap_interval
-		self.stratagy_list  	  = stratagy_list
+		self.strategy_list  	  = strategy_list
 		self.debug 		    	  = debug
 
 	def _init_exchange(self):
@@ -211,7 +211,7 @@ class QuantConfig:
 
 
 quant = QuantConfig(apiKey, secret, proxy, njob1, njob2, trade_ratio, min_kline_size, black_list,
-	max_one_order_amount, twap_interval, stratagy_list, debug=Debug)
+	max_one_order_amount, twap_interval, strategy_list, debug=Debug)
 
 if platform.system() != 'Linux' and (quant.njob1 != 1 or quant.njob2 != 1):
 	quant._init_exchange()
