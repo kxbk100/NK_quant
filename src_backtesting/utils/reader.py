@@ -71,7 +71,8 @@ def read_one(trade_type, hold_hour, symbol, path_list, filter_class_list, date_r
 
     period_df_list = []
     for offset in range(int(hold_hour[:-1])):
-        period_df = df.resample(hold_hour, offset=offset).agg(agg_dict)
+        # period_df = df.resample(hold_hour, offset=offset).agg(agg_dict)
+        period_df = df.resample(hold_hour, offset=f'{offset}H').agg(agg_dict)
         period_df.reset_index(inplace=True)
         # 合并数据
         period_df_list.append(period_df)
