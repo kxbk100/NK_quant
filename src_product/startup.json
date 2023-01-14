@@ -1,0 +1,14 @@
+{
+    "apps": [
+        {
+            "args": "",
+            "name": "bn_alpha1",
+            "script": "/root/git/alpha/src_product/startup.py",
+            "exec_interpreter": "python",
+            "merge_logs": false,
+            "watch": false,
+            "error_file": "/root/quant/logs/bn_alpha1.pro.error.log",
+            "out_file": "/root/quant/logs/bn_alpha1.pro.out.log"
+        }
+    ]
+}
