@@ -149,12 +149,13 @@ def filter_generate(direction: str = 'long', filter_factor: str = '涨跌幅max_
         pre_fix = 'long_' if dfx == 'df1' else 'short_'
         map_ad = 0 if not filter_after else 2
         num = cdn_num_ls[cdn_map[dfx] + map_ad]
-        if num > 9: raise ValueError('当前过滤范式不允许单向过滤个数超过9个')
         condition_str = f"{pre_fix}condition{num} = {reverse}{dfx}[f'{filter_factor}'].between({left},{right},inclusive={inclusive})"
         cdn_num_ls[cdn_map[dfx] + map_ad] += 1
 
         return rank_str, condition_str, dfx, num, weight_ratio
-
+    # 数字映射，解决计数替换重码
+    chinese_digit = '零 一二三四五六七八九'
+    digit_map = {str(i): v for i, v in enumerate(chinese_digit)}
     # 组件构装
     if param is None:
         param = direction, filter_factor, filter_type,  compare_operator, filter_value, rank_ascending, filter_after, weight_ratio
@@ -173,12 +174,11 @@ def filter_generate(direction: str = 'long', filter_factor: str = '涨跌幅max_
         if not filter_after:
             filter_str = f"{dfx} = {dfx}.loc[{pre_fix}condition{num}]"
         else:
-            filter_str = f"{dfx}.loc[{pre_fix}condition{num},'weight_ratio'] = {weight_ratio}]"
+            filter_str = f"{dfx}.loc[{pre_fix}condition{num},'weight_ratio'] = {weight_ratio}"
         filter_str = f"""{rank_str}\n{condition_str}\n{filter_str}"""
         return filter_str
     elif type(param) == tuple:
-        params_list = param[:-1]
-        logical_operators = param[-1]
+        *params_list, logical_operators = param
         param = params_list[0]
         filter_after = False if len(param) < 7 else param[6]
         if filter_after in FilterAfter.__members__.values():
@@ -191,19 +191,22 @@ def filter_generate(direction: str = 'long', filter_factor: str = '涨跌幅max_
             except Exception as e:
                 print('出错参数：', x)
                 raise e
-        if len(set([x[2] for x in filter_res_list])) != 1 : raise ValueError('df1 与 df2 不能进行逻辑运算')
+        if len(set([x[2] for x in filter_res_list])) != 1: raise ValueError('df1 与 df2 不能进行逻辑运算')
         ref = filter_res_list[0][3] - 1
+        for i in range(10):
+            logical_operators = logical_operators.replace(str(i), digit_map[str(i)])
         for i, filter_res in enumerate(filter_res_list[::-1]):
             i = len(filter_res_list) - i - 1
             dfx, num, weight_ratio = filter_res[2:]
             pre_fix = 'long_' if dfx == 'df1' else 'short_'
-            # print(i+1, i+1+ref)
-            logical_operators = logical_operators.replace(str(i+1), f'{pre_fix}condition{i+1+ref}')
+            raw_digit = digit_map[str(i+1)]
+            target_digit = str(i+1+ref)
+            logical_operators = logical_operators.replace(raw_digit, f'{pre_fix}condition{target_digit}')
         if not filter_after:
             filter_str = f"{dfx} = {dfx}.loc[{logical_operators}]"
         else:
             if len(set([x[4] for x in filter_res_list])) != 1: raise ValueError('后置过滤与或并运算，要求weight_ratio一致')
-            filter_str = f"{dfx}.loc[{logical_operators},'weight_ratio'] = {weight_ratio}]"
+            filter_str = f"{dfx}.loc[{logical_operators},'weight_ratio'] = {weight_ratio}"
         filter_strs = []
         [filter_strs.extend(x[:2]) for x in filter_res_list]
         filter_strs += [filter_str]
@@ -732,10 +735,13 @@ def neutral_strategy_playback(
         display_list = [x[0] for x in res_list]
         order_df_list = [x[1] for x in res_list]
         display_df = pd.concat(display_list)
-        display_df = display_df.set_index(['candle_begin_time', 'symbol'])
+        display_df = display_df.rename(columns={'candle_begin_time': 'display_time'})
+        display_df = display_df.set_index(['display_time', 'symbol'])
         # display_df = display_df[display_df['持仓市值'] >= 1]
         order_df = pd.concat(order_df_list)
-        order_df = order_df.set_index(['candle_begin_time', 'symbol'])
+        order_df = order_df.rename(columns={'candle_begin_time': 'trade_time'})
+
+        order_df = order_df.set_index(['trade_time', 'symbol'])
     else:
         display_df = pd.DataFrame()
         order_df = pd.DataFrame()
@@ -760,6 +766,8 @@ def neutral_strategy_playback(
     # 利用insert方法插入取出的数据列到指定位置
     res.insert(1, '手续费磨损净值', d)
     log.info(f'初始投入资产: {initial_trade_usdt} U,最终账户资产: {final_trade_usdt} U, 共支付手续费: {-cmmmission_sum} U')
+    account_df.index = account_df.index - datetime.timedelta(hours=1)
+    curve.index = curve.index - datetime.timedelta(hours=1)
     return res, curve, account_df, display_df, order_df
 
 
@@ -811,6 +819,17 @@ def cal_factor_by_cross(df, factor_long_list, factor_short_list, pct_enable=Fals
 
 # 纵截面
 def cal_factor_by_vertical(df, factor_long_list, factor_short_list):
+
+    '''纵截面数据处理更新'''
+    feature_list = tools.convert_to_feature(factor_long_list + factor_short_list)
+    # ===数据预处理
+    df = df.set_index(['candle_begin_time', 'symbol']).sort_index()
+    df[feature_list] = df.groupby('candle_begin_time')[
+        feature_list].apply(lambda x: x.fillna(x.median()))
+    df.reset_index(inplace=True)
+    '''纵截面数据处理更新'''
+
+
     df = tools.cal_factor_by_vertical(df, factor_long_list, factor_tag='多头因子')
     df = tools.cal_factor_by_vertical(df, factor_short_list, factor_tag='空头因子')
     return df
@@ -846,14 +865,17 @@ def np_gen_selected(df, base_index, filter_before_exec, filter_after_exec, selec
 
     time_length1 = len(df1['time'].unique())
     time_length2 = len(df2['time'].unique())
-    filter_miss = False
     if time_length != np.mean([time_length1, time_length2]):
         log.warning('由于过滤因子异常或过滤条件苛刻,导致某些小时合约数量不够,进入容错选币算法，数量不够的小时将空仓，耗时很长。建议检查过滤条件，多空不平衡玩法可以在后置过滤完成')
-        # log.warning('多头缺失日期:', [x for x in df1['time'].unique() if x not in df['time'].unique()])
-        # log.warning('空头缺失日期:', [x for x in df2['time'].unique() if x not in df['time'].unique()])
-        log.warning('多头缺失日期:', set(df['time'].unique()) - set(df1['time'].unique()))
-        log.warning('空头缺失日期:', set(df['time'].unique()) - set(df2['time'].unique()))
+
+        df1_miss = (set(df['time'].unique()) - set(df1['time'].unique()))
+        df2_miss = (set(df['time'].unique()) - set(df2['time'].unique()))
+        log.warning(f'多头缺失日期:{df1_miss}')
+        log.warning(f'空头缺失日期:{df2_miss}')
+
         filter_miss = True
+    else:
+        filter_miss = False
 
     # 后置过滤前置化
     df1, df2 = filter_after(df1, df2, filter_after_exec)
