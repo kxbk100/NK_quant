@@ -96,16 +96,16 @@ def cal_factor_by_cross(df, factor_list1, factor_list2, pct_enable=False):
     df[feature_list] = df.groupby('candle_begin_time')[feature_list].apply(lambda x:x.fillna(x.median()))
     df.reset_index(inplace=True)
 
-    df = tools.cal_factor_by_verical(df, factor_list1, factor_tag='多头因子')
-    df = tools.cal_factor_by_verical(df, factor_list2, factor_tag='空头因子')
+    df = tools.cal_factor_by_vertical(df, factor_list1, factor_tag='多头因子')
+    df = tools.cal_factor_by_vertical(df, factor_list2, factor_tag='空头因子')
 
     return df
 
 
 # 纵截面
-def cal_factor_by_verical(df, factor_list1, factor_list2):
-	df = tools.cal_factor_by_verical(df, factor_list1, factor_tag='多头因子')
-	df = tools.cal_factor_by_verical(df, factor_list2, factor_tag='空头因子')
+def cal_factor_by_vertical(df, factor_list1, factor_list2):
+	df = tools.cal_factor_by_vertical(df, factor_list1, factor_tag='多头因子')
+	df = tools.cal_factor_by_vertical(df, factor_list2, factor_tag='空头因子')
 	return df
 #==================================================================
 #==================================================================
@@ -164,7 +164,7 @@ print('数据处理完毕!!!\n')
 # 横截面
 df = cal_factor_by_cross(df, factor_list1, factor_list2)
 # 纵截面
-#df = cal_factor_by_verical(df, factor_list1, factor_list2)
+#df = cal_factor_by_vertical(df, factor_list1, factor_list2)
 # ===选币
 select_coin = gen_selected(df, select_coin_num)
 # ===计算offset

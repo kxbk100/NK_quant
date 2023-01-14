@@ -104,7 +104,7 @@ def evaluate(header, features, filters, hold_hour, factor_list):
 	if check_zero(factor_list):
 		return 0, factor_list
 	# 计算因子(横截面)
-	features = tools.cal_factor_by_verical(features, factor_list)
+	features = tools.cal_factor_by_vertical(features, factor_list)
 	# 组装df
 	df = header
 	df['因子'] = features['因子']

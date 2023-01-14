@@ -87,7 +87,7 @@ def gen_selected(df, select_coin_num):
 	return df
 
 
-def cal_factor_by_verical(df, factor_list, reverse=-1, factor_tag='因子'):
+def cal_factor_by_vertical(df, factor_list, reverse=-1, factor_tag='因子'):
 	feature_list = []
 	coef_        = []
 	for _factor, weight in factor_list:
@@ -114,7 +114,7 @@ def evaluate(header, features, filters, hold_hour, all_factor_list):
 		return 0, all_factor_list
 	# 计算因子
 	_reverse = -1 if if_reverse == True else 1
-	features = cal_factor_by_verical(features, all_factor_list, reverse=_reverse)
+	features = cal_factor_by_vertical(features, all_factor_list, reverse=_reverse)
 	# 组装df
 	df = header
 	df['因子'] = features['因子']

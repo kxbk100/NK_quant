@@ -82,7 +82,7 @@ def convert_to_filter(all_filter_list):
 #==================================================================
 #==================================================================
 #==================================================================
-stratagy_list = [
+strategy_list = [
 	{
 		"c_factor":    "c_factor1",  
 		"hold_period": "6H",
@@ -157,7 +157,7 @@ run_time   = datetime.strptime('2021-10-30 03:00:00', "%Y-%m-%d %H:%M:%S")
 
 all_factor_list = []
 all_filter_list = []
-for strategy in stratagy_list:
+for strategy in strategy_list:
 	all_factor_list.extend(strategy['factors'])
 	all_filter_list.extend(strategy['filters'])
 
@@ -195,7 +195,7 @@ print('数据处理完毕!!!\n')
 
 
 select_coin_list = []
-for strategy in stratagy_list:
+for strategy in strategy_list:
 	c_factor        = strategy['c_factor']
 	hold_hour       = strategy['hold_period']
 	type_ 		    = strategy['type']
@@ -212,7 +212,7 @@ for strategy in stratagy_list:
 	if type_ == '横截面':
 		df = tools.cal_factor_by_cross(alldata.copy(), factor_list)
 	else:
-		df = tools.cal_factor_by_verical(alldata.copy(), factor_list)
+		df = tools.cal_factor_by_vertical(alldata.copy(), factor_list)
 	# ===时间过滤
 	df = df[df['candle_begin_time'] >= (run_time - timedelta(hours=int(hold_hour[:-1])))]
 	# ===只保留有用字段

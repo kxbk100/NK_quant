@@ -152,7 +152,7 @@ print('整合资金费率完毕!!!\n')
 # 横截面
 df = tools.cal_factor_by_cross(df, factor_list)
 # 纵截面
-#df = tools.cal_factor_by_verical(df, factor_list)
+#df = tools.cal_factor_by_vertical(df, factor_list)
 # ===选币
 select_coin = gen_selected(df, select_coin_num)
 # ===计算offset

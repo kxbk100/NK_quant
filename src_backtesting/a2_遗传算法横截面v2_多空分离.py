@@ -105,8 +105,8 @@ def evaluate(header, features, filters, hold_hour, factor_long_list, factor_shor
 		return 0, factor_long_list, factor_short_list
 
 	# 计算因子(横截面)
-	features = tools.cal_factor_by_verical(features, factor_long_list,  factor_tag='多头因子')
-	features = tools.cal_factor_by_verical(features, factor_short_list, factor_tag='空头因子')
+	features = tools.cal_factor_by_vertical(features, factor_long_list,  factor_tag='多头因子')
+	features = tools.cal_factor_by_vertical(features, factor_short_list, factor_tag='空头因子')
 	# 组装df
 	df = header
 	df['多头因子'] = features['多头因子']
