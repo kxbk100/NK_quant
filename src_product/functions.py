@@ -18,7 +18,7 @@ from api.market import fetch_fundingrate
 from config import workdir, fundingrate_filename
 
 
-def set_fundingrate(exchange, keep_hour=24):
+def set_fundingrate(exchange, keep_hour=48):
 	filepath = os.path.join(workdir, fundingrate_filename)
 	recent = fetch_fundingrate(exchange)
 	if not os.path.exists(filepath):
@@ -104,7 +104,7 @@ def convert_to_filter(filter_list):
 
 
 # 纵截面
-def cal_factor_by_verical(df, factor_list, factor_tag='因子'):
+def cal_factor_by_vertical(df, factor_list, factor_tag='因子'):
 	feature_list = []
 	coef_        = []
 	for factor_name, if_reverse, back_hour, d_num, weight in factor_list:
@@ -130,7 +130,7 @@ def cal_factor_by_cross(df, factor_list, factor_tag='因子', pct_enable=False):
 	df[feature_list] = df.groupby('candle_begin_time')[feature_list].apply(lambda x:x.fillna(x.median()))
 	df.reset_index(inplace=True)
 
-	return cal_factor_by_verical(df, factor_list)
+	return cal_factor_by_vertical(df, factor_list)
 
 
 def cal_one_factors(df, all_factor_list, all_filter_list, run_time, hold_period):
@@ -159,7 +159,7 @@ def cal_one_factors(df, all_factor_list, all_filter_list, run_time, hold_period)
 
 # =====策略相关函数
 # 选币数据整理 & 选币
-def cal_factor_and_select_coin(symbol_candle_data, stratagy_list, run_time, njob2, min_kline_size=999):
+def cal_factor_and_select_coin(symbol_candle_data, strategy_list, run_time, njob2, min_kline_size=999):
 	# ===过滤K线
 	symbol_candle_datas = dict()
 	for symbol, df in symbol_candle_data.items():
@@ -189,13 +189,13 @@ def cal_factor_and_select_coin(symbol_candle_data, stratagy_list, run_time, njob
 	# 构建参数
 	all_factor_list = []
 	all_filter_list = []
-	for strategy in stratagy_list:
+	for strategy in strategy_list:
 		all_factor_list.extend(strategy['factors'])
 		all_filter_list.extend(strategy['filters'])
 	# 最大hold_period
 	# 计算所有因子首先通过 df['candle_begin_time'] >= (run_time - timedelta(hours=hold_period)) 过滤
 	# 主要减少下面 pd.concat 内存消耗
-	max_hold_period = max([int(row['hold_period'][:-1]) for row in stratagy_list])
+	max_hold_period = max([int(row['hold_period'][:-1]) for row in strategy_list])
 
 	arg_list = [(df, all_factor_list, all_filter_list, run_time, max_hold_period) for df in symbol_candle_datas.values()]
 	# 计算
@@ -223,7 +223,7 @@ def cal_factor_and_select_coin(symbol_candle_data, stratagy_list, run_time, njob
 	
 	# ===计算信号
 	select_coin_list = []
-	for strategy in stratagy_list:
+	for strategy in strategy_list:
 		c_factor        = strategy['c_factor']
 		hold_hour       = strategy['hold_period']
 		type_ 		    = strategy['type']
@@ -240,7 +240,7 @@ def cal_factor_and_select_coin(symbol_candle_data, stratagy_list, run_time, njob
 		if type_ == '横截面':
 			df = cal_factor_by_cross(alldata.copy(), factor_list)
 		else:
-			df = cal_factor_by_verical(alldata.copy(), factor_list)
+			df = cal_factor_by_vertical(alldata.copy(), factor_list)
 		# ===时间过滤
 		df = df[df['candle_begin_time'] >= (run_time - timedelta(hours=int(hold_hour[:-1])))]
 		# ===只保留有用字段

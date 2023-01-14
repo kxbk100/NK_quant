@@ -8,12 +8,12 @@ from datetime import datetime, timedelta
 
 
 # 计算每个策略分配的资金
-def cal_strategy_trade_usdt(stratagy_list, trade_usdt):
+def cal_strategy_trade_usdt(strategy_list, trade_usdt):
     df = pd.DataFrame()
     # 策略的个数
-    strategy_num = len(stratagy_list)
+    strategy_num = len(strategy_list)
     # 遍历策略
-    for strategy in stratagy_list:
+    for strategy in strategy_list:
         c_factor    = strategy['c_factor']
         hold_period = strategy['hold_period']
         select_coin_num = strategy['select_coin_num']

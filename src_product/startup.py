@@ -41,7 +41,7 @@ def run():
 		njob1           	 = quant.njob1
 		njob2           	 = quant.njob2
 		trade_ratio     	 = quant.trade_ratio
-		stratagy_list   	 = quant.stratagy_list
+		strategy_list   	 = quant.strategy_list
 		min_kline_size  	 = quant.min_kline_size
 		max_one_order_amount = quant.max_one_order_amount
 		twap_interval        = quant.twap_interval
@@ -64,7 +64,7 @@ def run():
 
 
 		# =====获取每个策略分配的资金：固定资金，之后的版本会改成浮动
-		strategy_trade_usdt = cal_strategy_trade_usdt(stratagy_list, trade_usdt)
+		strategy_trade_usdt = cal_strategy_trade_usdt(strategy_list, trade_usdt)
 		# =====获取账户的实际持仓
 		if debug:
 			symbol_info = pd.DataFrame(index=symbol_list, columns=['当前持仓量'])
@@ -98,7 +98,7 @@ def run():
 		# =====选币数据整理 & 选币
 		s_time = time.time()
 		select_coin = cal_factor_and_select_coin(
-			symbol_candle_data, stratagy_list, run_time, njob2, min_kline_size=min_kline_size
+			symbol_candle_data, strategy_list, run_time, njob2, min_kline_size=min_kline_size
 		)
 		print(select_coin)
 		print('完成选币数据整理 & 选币，花费时间：', time.time() - s_time)
