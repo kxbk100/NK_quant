@@ -192,6 +192,10 @@ def cal_factor_and_select_coin(symbol_candle_data, strategy_list, run_time, njob
 	for strategy in strategy_list:
 		all_factor_list.extend(strategy['factors'])
 		all_filter_list.extend(strategy['filters'])
+	all_factor_list = list(set(all_factor_list))
+	all_filter_list = list(set(all_filter_list))
+
+		
 	# 最大hold_period
 	# 计算所有因子首先通过 df['candle_begin_time'] >= (run_time - timedelta(hours=hold_period)) 过滤
 	# 主要减少下面 pd.concat 内存消耗
