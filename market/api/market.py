@@ -79,7 +79,7 @@ def get_funding_rate(exchange, symbol, start_time, end_time, retry_times=5):
 			alldata = pd.DataFrame()
 			continue
 
-	alldata['candle_begin_time'] = alldata['candle_begin_time'] # - pd.Timedelta(hours=8) 
+	alldata['candle_begin_time'] = alldata['candle_begin_time'] - pd.Timedelta(hours=1) 
 	alldata.sort_values(by='candle_begin_time', inplace=True)
 	alldata.drop_duplicates(subset=['candle_begin_time'], inplace=True, keep='last') 
 
