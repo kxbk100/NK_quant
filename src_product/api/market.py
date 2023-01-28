@@ -104,7 +104,7 @@ def fetch_fundingrate(exchange):
     df['candle_begin_time'] = pd.to_datetime(df['candle_begin_time'], unit='ms')
     df['candle_begin_time'] = df['candle_begin_time'].apply(lambda x: pd.to_datetime(x.to_pydatetime().replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")))
     utc_offset = int(time.localtime().tm_gmtoff/60/60)
-    df['candle_begin_time'] = df['candle_begin_time'] + pd.Timedelta(hours=utc_offset) 
+    df['candle_begin_time'] = df['candle_begin_time'] + pd.Timedelta(hours=utc_offset) - pd.Timedelta(hours=1)
     df.sort_values(by=['candle_begin_time', 'symbol'], inplace=True)
     df.reset_index(drop=True, inplace=True)
 
