@@ -136,12 +136,14 @@ def filter_generate(direction: str = 'long', filter_factor: str = '涨跌幅max_
         pre_fix = 'long_' if dfx == 'df1' else 'short_'
         map_ad = 0 if not filter_after else 2
         num = cdn_num_ls[cdn_map[dfx] + map_ad]
-        if num > 9: raise ValueError('当前过滤范式不允许单向过滤个数超过9个')
         condition_str = f"{pre_fix}condition{num} = {reverse}{dfx}[f'{filter_factor}'].between({left},{right},inclusive={inclusive})"
         cdn_num_ls[cdn_map[dfx] + map_ad] += 1
 
         return rank_str, condition_str, dfx, num, weight_ratio
 
+    # 数字映射，解决计数替换重码
+    chinese_digit = '零 一二三四五六七八九'
+    digit_map = {str(i): v for i, v in enumerate(chinese_digit)}
     # 组件构装
     if param is None:
         param = direction, filter_factor, filter_type, compare_operator, filter_value, rank_ascending, filter_after, weight_ratio
@@ -160,7 +162,7 @@ def filter_generate(direction: str = 'long', filter_factor: str = '涨跌幅max_
         if not filter_after:
             filter_str = f"{dfx} = {dfx}.loc[{pre_fix}condition{num}]"
         else:
-            filter_str = f"{dfx}.loc[{pre_fix}condition{num},'weight_ratio'] = {weight_ratio}]"
+            filter_str = f"{dfx}.loc[{pre_fix}condition{num},'weight_ratio'] = {weight_ratio}"
         filter_str = f"""{rank_str}\n{condition_str}\n{filter_str}"""
         return filter_str
     elif type(param) == tuple:
@@ -179,18 +181,21 @@ def filter_generate(direction: str = 'long', filter_factor: str = '涨跌幅max_
                 raise e
         if len(set([x[2] for x in filter_res_list])) != 1: raise ValueError('df1 与 df2 不能进行逻辑运算')
         ref = filter_res_list[0][3] - 1
+        for i in range(10):
+            logical_operators = logical_operators.replace(str(i), digit_map[str(i)])
         for i, filter_res in enumerate(filter_res_list[::-1]):
             i = len(filter_res_list) - i - 1
             dfx, num, weight_ratio = filter_res[2:]
             pre_fix = 'long_' if dfx == 'df1' else 'short_'
-            # print(i+1, i+1+ref)
-            logical_operators = logical_operators.replace(str(i + 1), f'{pre_fix}condition{i + 1 + ref}')
+            raw_digit = digit_map[str(i + 1)]
+            target_digit = str(i + 1 + ref)
+            logical_operators = logical_operators.replace(raw_digit, f'{pre_fix}condition{target_digit}')
         if not filter_after:
             filter_str = f"{dfx} = {dfx}.loc[{logical_operators}]"
         else:
             if len(set([x[4] for x in filter_res_list])) != 1: raise ValueError(
                 '后置过滤与或并运算，要求weight_ratio一致')
-            filter_str = f"{dfx}.loc[{logical_operators},'weight_ratio'] = {weight_ratio}]"
+            filter_str = f"{dfx}.loc[{logical_operators},'weight_ratio'] = {weight_ratio}"
         filter_strs = []
         [filter_strs.extend(x[:2]) for x in filter_res_list]
         filter_strs += [filter_str]
