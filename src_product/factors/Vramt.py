@@ -4,7 +4,7 @@
 import pandas as pd
 import numpy as np
 import talib
-from utils.diff import add_diff
+from utils.diff import add_diff, eps
 
 eps = 1e-8
 

@@ -25,7 +25,7 @@ trade_ratio = 1
 # 最小可用K线数(如果不足该币种不参与交易)
 min_kline_size = 999
 # 币种黑名单(不参与交易)
-black_list = ['BTCDOMUSDT', ]
+black_list = [ ]
 # ===拆单配置
 # 每次最大下单金额
 max_one_order_amount = 800
@@ -36,28 +36,48 @@ workdir = './data'
 # 资金费率文件名
 fundingrate_filename = 'fundingRate.pkl'
 # ===策略配置
+# '''
 strategy_list = [
 	{
-		"c_factor":    "c_factor1",  
-		"hold_period": "6H",
-		"type":        "横截面",
+		"c_factor": "c_factor1L",
+		"hold_period": "12H",
+		"type": "横截面",
 		"factors": [
-			('Bias', False, 4, 0, 1.0)
+			('AdaptBollingv3', True, 120, 0, 1),
 		],
 		"filters": [
-			('费率min', 24),
-			('费率max', 24),
-			('AdaptBolling', 100)
-		],		
+			('涨跌幅max', 24),
+			('Volume', 24),
+		],
 		"filters_handle": {
-			"before": 'filter_before',
-			'after':  'default_handler',
-		},		
-		"long_weight":       1,
-		"short_weight":      1,
-		"select_coin_num":   1,
+			"before": 'f1_before_filter',
+			'after': 'default_handler',
+		},
+		"long_weight": 2,
+		"short_weight": 0,
+		"select_coin_num": 2,
+	},
+	{
+		"c_factor": "c_factor1S",
+		"hold_period": "12H",
+		"type": "横截面",
+		"factors": [
+			('AdaptBollingv3', True, 120, 0, 1),
+		],
+		"filters": [
+			('涨跌幅max', 24),
+			('Volume', 24),
+		],
+		"filters_handle": {
+			"before": 'f1_before_filter',
+			'after': 'default_handler',
+		},
+		"long_weight": 0,
+		"short_weight": 2,
+		"select_coin_num": 8,
 	},
 ]
+# '''
 
 '''
 # ===策略配置
@@ -70,7 +90,9 @@ strategy_list = [
 			('Bias', False, 4, 0, 1.0),('Cci', True, 36, 0, 0.3)
 		],
 		"filters": [
-			('AdaptBolling', 100), ('BBW', [20, 2])
+			('涨跌幅max', 24),
+			('费率min', 24),
+			('费率max', 24),
 		],
 		"filters_handle": {
 			"before": 'filter_before',

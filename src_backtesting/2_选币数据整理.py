@@ -111,7 +111,7 @@ def run(trade_type, back_hour_list, diff_list, njobs=16):
 
 
 if __name__ == '__main__':
-    back_hour_list  = [3, 4, 6, 8, 9, 12, 24, 30, 36, 48, 60, 72, 96]  
+    back_hour_list  = [3, 4, 6, 8, 9, 12, 24, 30, 36, 48, 60, 72, 96] + list(range(80, 500, 10))
     # ===计算因子
     for trade_type in ['spot', 'swap'][1:]:
         run(trade_type, back_hour_list, diff_list=[0])

@@ -3,8 +3,8 @@
 
 import pandas as pd
 import numpy  as np
-import talib
-from utils.diff import add_diff
+import talib as ta
+from utils.diff import add_diff, eps
 
 
 def signal(*args):
@@ -28,7 +28,7 @@ def signal(*args):
     df['_ATR'] = df['TR'].rolling(n, min_periods=1).mean()  # ATR=MA(TR,N)
     df['middle'] = df['close'].rolling(n, min_periods=1).mean()  # MIDDLE=MA(CLOSE,N)
     # ATR指标去量纲
-    df[factor_name] = df['_ATR'] / df['middle']
+    df[factor_name] = df['_ATR'] / (df['middle'] + eps)
 
 
     del df['c1']

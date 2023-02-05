@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 import numpy  as np
-from utils.diff import add_diff
+from utils.diff import add_diff, eps
 import talib as ta
 
 

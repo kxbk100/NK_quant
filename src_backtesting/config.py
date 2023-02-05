@@ -5,6 +5,7 @@ import os
 
 
 _ = os.path.abspath(os.path.dirname(__file__))  # 返回当前文件路径
+plackback_path = os.path.abspath(os.path.join(_, 'plackback'))  # 返回plackback文件夹
 root_path = os.path.abspath(os.path.join(_, '..'))  # 返回根目录文件夹
 # 创建目录
 pickle_path = os.path.join(root_path, 'data', 'pickle_data')
@@ -33,7 +34,7 @@ head_columns = [
 ]  
 
 
-factor_class_list  = ['Bias', 'Cci', 'KdjD','Dbcd','VixBw','Rccd','ZhenFu_v2']
+factor_class_list  = ['AdaptBollingv3']
 
 '''
 factor_class_list  = ['Bias', 'Cci', 'Adtm', 'Adx', 'Angle', 'Atr',
@@ -50,27 +51,11 @@ factor_class_list  = ['Bias', 'Cci', 'Adtm', 'Adx', 'Angle', 'Atr',
 
 filter_config_list = [
 	{
-		'filter': 'AdaptBolling',
-		'params_list': [60, 100]
-	},
-	{
-		'filter': 'AdaptBollingv3',
-		'params_list': [11, 12, 13, 14]
-	},
-	{
-		'filter': 'BBW',
-		'params_list': [[20, 2], ]
-	},
-	{
-		'filter': 'DC',
-		'params_list': [20, 40, 60, 80, 100]
-	},	
-	{
-		'filter': 'ZH_涨跌幅',
+		'filter': '涨跌幅max',
 		'params_list': [4, 6, 8, 12, 24]
-	},	
+	},
 	{
-		'filter': 'ZH_震幅',
-		'params_list': [4, 6, 8, 12, 24]
-	},	
+		'filter': 'Volume',
+		'params_list': [3, 6, 12, 24, 36, 48, 72]
+	},
 ]

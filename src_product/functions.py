@@ -177,9 +177,9 @@ def cal_factor_and_select_coin(symbol_candle_data, strategy_list, run_time, njob
 			print('no enough data', symbol)
 			continue
 
-		from functions import get_fundingrate
 		# 整合资金费率数据
 		fundingrate_data = get_fundingrate()
+		fundingrate_data = fundingrate_data[fundingrate_data['symbol'] == symbol]
 		df = pd.merge(df,
 					  fundingrate_data[['candle_begin_time', 'symbol', 'fundingRate']],
 					  on=['candle_begin_time', 'symbol'], how="left")

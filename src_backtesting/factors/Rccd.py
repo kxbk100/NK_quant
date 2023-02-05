@@ -4,6 +4,7 @@
 import pandas as pd
 import numpy as np
 import talib
+from utils.tools import sma
 from utils.diff import add_diff
 
 

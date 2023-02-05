@@ -29,7 +29,7 @@ def  factor_config_transform_class(factor_config):
             factor_class_list.append(_factor.split('_bh_')[0])
         else:
             factor_class_list.append(_factor)
-    
+
     return factor_class_list
 
 def filter_config_transform_class(filter_config):
@@ -52,15 +52,17 @@ def factor_list_transform_std_factor(feature_list):
         factor =[]
         if 'bh' in feature:
             if '__diff__' in feature:
-                
                 factor_list.append([(feature.split('_bh_')[0],True,feature.split('_bh_')[-1].split('__diff__')[0],feature.split('_bh_')[-1].split('__diff__')[-1],1)])
-                factor_list.append([(feature.split('_bh_')[0],False,feature.split('_bh_')[-1].split('__diff__')[0],feature.split('_bh_')[-1].split('__diff__')[-1],1)])
+                # factor_list.append([(feature.split('_bh_')[0],False,feature.split('_bh_')[-1].split('__diff__')[0],feature.split('_bh_')[-1].split('__diff__')[-1],1)])
             elif '__diff__'not in feature:
-                factor_list.append([(feature.split('_bh_')[0],True,feature.split('_bh_')[-1],0,1)])
-                factor_list.append([(feature.split('_bh_')[0],False,feature.split('_bh_')[-1],0,1)])
+                bh = feature.split('_bh_')[-1]
+                bh = int(bh)
+                if bh >= 50 and bh <= 300:
+                    factor_list.append([(feature.split('_bh_')[0],True,bh,0,1)])
+                # factor_list.append([(feature.split('_bh_')[0],False,feature.split('_bh_')[-1],0,1)])
     return factor_list
    
-    #('AdaptBollingv3', True, 96, 0, 1)
+
 def get_filter_params(filter_class,filter_before_list_params):
     res_list = []
     for  filter_before_param in filter_before_list_params:
@@ -79,7 +81,6 @@ def filter_list_transform_std_filter(filter_list):
     for _filter in filter_list:
         #为空暂未处理
         if _filter == 'None':
-            
             filter_before_list.append(['None'])
             return filter_before_list
             
@@ -241,15 +242,15 @@ def run_play(_df,playCfg,othCfg):
     if not os.path.exists(data_path):
         os.makedirs(data_path)
     # 回放数据保存
-    save_path = os.path.join(data_path, '净值持仓数据.csv')
-    res.to_csv(save_path, encoding='gbk')
-    curve.to_csv(save_path, encoding='gbk', mode='a')
-    save_path = os.path.join(data_path, '虚拟账户数据.csv')
-    account_df.to_csv(save_path, encoding='gbk')
-    save_path = os.path.join(data_path, '持仓面板数据.pkl')
-    display_df.to_pickle(save_path)
-    save_path = os.path.join(data_path, '下单面板数据.pkl')
-    order_df.to_pickle(save_path)
+    # save_path = os.path.join(data_path, '净值持仓数据.csv')
+    # res.to_csv(save_path, encoding='gbk')
+    # curve.to_csv(save_path, encoding='gbk', mode='a')
+    # save_path = os.path.join(data_path, '虚拟账户数据.csv')
+    # account_df.to_csv(save_path, encoding='gbk')
+    # save_path = os.path.join(data_path, '持仓面板数据.pkl')
+    # display_df.to_pickle(save_path)
+    # save_path = os.path.join(data_path, '下单面板数据.pkl')
+    # order_df.to_pickle(save_path)
     log.info(f'\n{res.to_markdown()}')
 
     # # plotly 作图
@@ -258,11 +259,18 @@ def run_play(_df,playCfg,othCfg):
     # plot_log_double(curve)
 
     #将因子参数添加到res中， 保存格式
-    res
+    # res
     res['因子名']=factor_long_list[0][0]
     res['因子TF']=factor_long_list[0][1]
     res['因子参数']=factor_long_list[0][2]
     res['因子差分']=factor_long_list[0][3]
+
+    
+    if len(filter_list) > 1:
+        #filter_list 排序
+        filter_list = sorted(filter_list)
+        filter_class_list = sorted(filter_class_list)
+
 
     for i in range(len(filter_list)):
         res[f'过滤因子_{i+1}'] = filter_list[i].split('_fl_')[0]
@@ -270,7 +278,7 @@ def run_play(_df,playCfg,othCfg):
 
     if not os.path.exists(os.path.join(output_fa_path,f'{factor_class_list}.csv')):
         res.to_csv(os.path.join(output_fa_path,f'{factor_class_list}.csv'))
-    else:        res.to_csv(os.path.join(output_fa_path,f'{factor_class_list}.csv'),header =False,mode='a')
+    else:res.to_csv(os.path.join(output_fa_path,f'{factor_class_list}.csv'),header =False,mode='a')
 
     if filter_class_list == []:filter_class_list.append(None)
     if not os.path.exists(os.path.join(output_fi_path,f'{filter_class_list}.csv')):
@@ -293,48 +301,21 @@ def run_play(_df,playCfg,othCfg):
 compound_name = 'AdaptBollingv3'  # name
 # ===常规配置
 cal_factor_type = 'cross'  # cross/ vertical
-start_date = '2020-01-01'
-end_date = '2022-11-20'
-# factor_long_list = [('AdaptBollingv3', True, 96, 0, 1)]
-# factor_short_list = [('AdaptBollingv3', True, 96, 0, 1)]
-
-
-# 遍历写法规定 如果只写因子名,默认获取所有文件过去因子参数,支持多过滤条件
-#需要修改funtion.PY  #if num > 9: raise ValueError('当前过滤范式不允许单向过滤个数超过9个')
-# 1. 选币因子
-# 选币因子不指定参数:'AdaptBollingv3'
-# 选币因子指定参数:’AdaptBollingv3_bh_96’
-# 2. 过滤因子
-# 无过滤写法:'None' 
-# 只写过滤名写法: '过滤因子名字'
-# 指定过滤参数写法: '过滤因子名字_fl_参数'
-
-#遍历流程
-#1.根据选币因子和过滤因子的因子名,获取所有的读取数据列表的组合
-#2.根据一组因子组合,获得所有的带参数的子配置,如果因子带参数,直接使用参数组合,如果因子只有名字,通过读取文件,获得所有的参数
-#3.将所有的因子参数做笛卡尔积,获得所有的参数组合
-#4.根据参数组合,获得所有的子配置,并运行回放
-
+start_date = '2022-01-01'
+end_date = '2023-01-25'
 
 # ===遍历参数配置
 ergodic_factor_list = [
-    ['AdaptBollingv3_bh_96'],
     ['AdaptBollingv3'],
     ]
+
 ergodic_filter_list = [
     ['None'],
-    ['ZH_成交额_fl_24'],
-    ['ZH_成交额','涨跌幅max'],
-
 ]
 
-filter_before_list_params = [ 
-    ['ZH_成交额', 'rank', 'lte', 30, RankAscending.FALSE, FilterAfter.FALSE],
-    ['涨跌幅max', 'value', 'lte', 0.2, RankAscending.FALSE, FilterAfter.FALSE]
-]
-
+# 无需配置
+filter_before_list_params = []
     
-
 
 trade_type = 'swap'
 playCfg['c_rate'] = 6 / 10000  # 手续费
@@ -344,8 +325,8 @@ long_select_offset = []
 short_select_offset = []
 
 # ===回放增强配置
-playCfg['long_coin_num'] = 1  # 多头选币数
-playCfg['short_coin_num'] = 1  # 空头选币数
+playCfg['long_coin_num'] = 2  # 多头选币数
+playCfg['short_coin_num'] = 8  # 空头选币数
 # 多币权重参数(不小于0),多币时有效,详见https://bbs.quantclass.cn/thread/8835
 playCfg['long_p'] = 0  # 0 :等权, 0 -> ∞ :多币头部集中度逐渐降低
 playCfg['short_p'] = 0  # long_coin_num = 3, long_p = 1 ;rank 1,2,3 的资金分配 [0.43620858, 0.34568712, 0.21810429]
@@ -366,63 +347,22 @@ short_black_list = []
 # ===过滤配置(元素皆为字符串,仿照e.g.写即可 支持 & |)
 # 前置过滤 筛选出选币的币池
 
-# 写法1
 
 filter_before_params = [
-
-    # ['df1', 'Volume_fl_24', 'rank', 'lte', 30, RankAscending.FALSE, FilterAfter.FALSE],
-    # ['df2', 'Volume_fl_24', 'rank', 'lte', 30, RankAscending.FALSE, FilterAfter.FALSE],
     ['df1', '涨跌幅max_fl_24', 'value', 'lte', 0.2, RankAscending.FALSE, FilterAfter.FALSE],
-    ['df2', '涨跌幅max_fl_24', 'value', 'lte', 0.4, RankAscending.FALSE, FilterAfter.FALSE],
-
-    # (
-    #     ['df1', '费率max_fl_24', 'rank', 'gte', 5, RankAscending.FALSE, FilterAfter.FALSE],
-    #     ['df1', 'fundingRate', 'value', 'lte', 0.0001, RankAscending.FALSE, FilterAfter.FALSE],
-    #     '1|2'
-    # ),
-    # (
-    #     ['df2', '费率min_fl_24', 'rank', 'gte', 5, RankAscending.TRUE, FilterAfter.FALSE],
-    #     ['df2', 'fundingRate', 'value', 'gte', 0, RankAscending.FALSE, FilterAfter.FALSE],
-    #     '1|2'
-    # ),
-
-    # (
-    #     ['df1', '费率max_fl_24', 'pct', 'lte', 0.95, RankAscending.FALSE, FilterAfter.FALSE],
-    #     ['df1', 'fundingRate', 'value', 'lte', 0.0001, RankAscending.FALSE, FilterAfter.FALSE],
-    #     '1|2'
-    # ),
-    # (
-    #     ['df2', '费率min_fl_24', 'pct', 'gte', 0.05, RankAscending.FALSE, FilterAfter.FALSE],
-    #     ['df2', 'fundingRate', 'value', 'gte', 0, RankAscending.FALSE, FilterAfter.FALSE],
-    #     '1|2'
-    # )
+    ['df2', '涨跌幅max_fl_24', 'value', 'lte', 0.2, RankAscending.FALSE, FilterAfter.FALSE],
+    ['df1', 'Volume_fl_24', 'rank', 'lte', 60, RankAscending.FALSE, FilterAfter.FALSE],
+    ['df2', 'Volume_fl_24', 'rank', 'lte', 60, RankAscending.FALSE, FilterAfter.FALSE],
 ]
-
 filter_before_exec = [filter_generate(param=param) for param in filter_before_params]
-# 将默认的串联过滤转化为并联,只针对前置过滤且有使用了rank/pct类型的过滤集,value类型串并联无影响
-# filter_before_exec, tag = parallel_filter_handle(filter_before_exec)
-
-
-# filter_info = """filter_factor = ['涨跌幅max_fl_24'][0]
-# df1 = df1[df1[f'涨跌幅max_fl_24']<0.2]
-# filter_factor = ['涨跌幅max_fl_24'][0]
-# df2 = df2[df2[f'涨跌幅max_fl_24']<0.2]
-# """
-# filter_before_exec = [filter_info]
 
 
 # 后置过滤 在选币后下单前控制选定币种的资金分配系数
-filter_after_params = [
-    # ['df2', 'fundingRate', 'value', 'lte', -0.0001, RankAscending.FALSE, FilterAfter.TRUE]
-]
+filter_after_params = []
 filter_after_exec = [filter_generate(param=param) for param in filter_after_params]
 
 # ===花式配置
-# 资金曲线择时:(param[-1] 默认为计算signal需要的最少小时数)
 p_signal_fun = None
-# param = [48, 48]
-# p_signal_fun = partial(ma_signal, param)
-
 # ===回放参数配置
 hourly_details = False  # True 会生成详细截面数据 持仓面板和下单面板,耗时增加20S左右
 select_by_hour = False  # True 为逐小时,会对退市币精确处理,速度慢；False 速度快,模糊处理
@@ -449,13 +389,9 @@ if playCfg['offset_stop_win'][0] != 0 or playCfg['offset_stop_loss'][0] != 0:
     assert playCfg['offset_stop_win'][0] > 0 and playCfg['offset_stop_loss'][0] < 0
 
 
-
-
-
 def run():
     #提取读取数据时的所有组合
     product_list = list(product(ergodic_factor_list, ergodic_filter_list))
-    # print(product_list)
 
     for factor_config,filter_config in product_list:
         #因子配置转为class
@@ -469,14 +405,12 @@ def run():
             factor_class_list,
             filter_class_list=filter_class_list)
 
-
         #读取所有数据还有因子数据以后,将数据中的选币因子数据和过滤因子数据分开,分成两个列表
         df_columns = df.columns.tolist()
         #df_columns里包含all_factor_calss_list字符串的列名
         feature_list = [x for x in df_columns if any([y in x for y in factor_config])]
         filter_list = [x for x in df_columns if any([y in x for y in filter_config])]
-        #df = df[['candle_begin_time', 'symbol', 'close', 'avg_price']+feature_list + filter_list]
-        
+
         if len(filter_list)==0:
             filter_list.append('None')
         # 因子分组
@@ -486,7 +420,6 @@ def run():
         #获得所有的参数组合
         params_list = list(product(factor_params_list, filter_params_list))
 
-        
 
         _othCfg_list = []
         #运行回放
@@ -500,17 +433,16 @@ def run():
                 _othCfg['filter_before_exec'] = []
             _othCfg_list.append(_othCfg)
        
-        # #串行回放
+        # # #串行回放
         # for _othCfg in _othCfg_list:
         #     run_play(df,playCfg, _othCfg)
 
         #并行回放
-        njobs = os.cpu_count() - 2
+        # njobs = os.cpu_count() - 2
+        njobs = 2
         Parallel(n_jobs=njobs)(delayed(run_play)(df, playCfg, _othCfg)for _othCfg in _othCfg_list)
 
-
         del df
-
 
 
 
@@ -522,7 +454,7 @@ def main():
     if filter_after_exec:
         print('后置过滤源码：')
         [print(x, '\n') if tag in x else print(x) for x in filter_after_exec]
-    res = playback_start(playCfg, othCfg)
+    res,curve = playback_start(playCfg, othCfg)
 
 if __name__ == '__main__':
     run()

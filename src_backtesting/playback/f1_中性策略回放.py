@@ -1,10 +1,10 @@
 import pprint
-from function import filter_generate, log, parallel_filter_handle
+from function import filter_generate,ind,plt, log, parallel_filter_handle
 from job import playback_start
 from environ import playCfg, RankAscending, FilterAfter, tag
+import pandas as pd
 
-
-compound_name = 'AdaptBollingv3'  # name
+compound_name = 'adaptV3'  # name
 # ===常规配置
 cal_factor_type = 'cross'  # cross/ vertical
 start_date = '2020-01-01'
@@ -19,8 +19,8 @@ long_select_offset = []
 short_select_offset = []
 
 # ===回放增强配置
-playCfg['long_coin_num'] = 1  # 多头选币数
-playCfg['short_coin_num'] = 1  # 空头选币数
+playCfg['long_coin_num'] = 2  # 多头选币数
+playCfg['short_coin_num'] = 4  # 空头选币数
 # 多币权重参数(不小于0),多币时有效,详见https://bbs.quantclass.cn/thread/8835
 playCfg['long_p'] = 0  # 0 :等权, 0 -> ∞ :多币头部集中度逐渐降低
 playCfg['short_p'] = 0  # long_coin_num = 3, long_p = 1 ;rank 1,2,3 的资金分配 [0.43620858, 0.34568712, 0.21810429]
@@ -34,57 +34,20 @@ playCfg['offset_stop_loss'] = 0   # offset 止损
 # 固定白名单 'BTCUSDT'
 long_white_list = []
 short_white_list = []
+
 # 固定黑名单
 long_black_list = []
 short_black_list = []
-
 # ===过滤配置(元素皆为字符串,仿照e.g.写即可 支持 & |)
 # 前置过滤 筛选出选币的币池
 
-# 写法1
-
 filter_before_params = [
-
-    # ['df1', 'Volume_fl_24', 'rank', 'lte', 30, RankAscending.FALSE, FilterAfter.FALSE],
-    # ['df2', 'Volume_fl_24', 'rank', 'lte', 30, RankAscending.FALSE, FilterAfter.FALSE],
     ['df1', '涨跌幅max_fl_24', 'value', 'lte', 0.2, RankAscending.FALSE, FilterAfter.FALSE],
-    ['df2', '涨跌幅max_fl_24', 'value', 'lte', 0.4, RankAscending.FALSE, FilterAfter.FALSE],
-
-    # (
-    #     ['df1', '费率max_fl_24', 'rank', 'gte', 5, RankAscending.FALSE, FilterAfter.FALSE],
-    #     ['df1', 'fundingRate', 'value', 'lte', 0.0001, RankAscending.FALSE, FilterAfter.FALSE],
-    #     '1|2'
-    # ),
-    # (
-    #     ['df2', '费率min_fl_24', 'rank', 'gte', 5, RankAscending.TRUE, FilterAfter.FALSE],
-    #     ['df2', 'fundingRate', 'value', 'gte', 0, RankAscending.FALSE, FilterAfter.FALSE],
-    #     '1|2'
-    # ),
-
-    # (
-    #     ['df1', '费率max_fl_24', 'pct', 'lte', 0.95, RankAscending.FALSE, FilterAfter.FALSE],
-    #     ['df1', 'fundingRate', 'value', 'lte', 0.0001, RankAscending.FALSE, FilterAfter.FALSE],
-    #     '1|2'
-    # ),
-    # (
-    #     ['df2', '费率min_fl_24', 'pct', 'gte', 0.05, RankAscending.FALSE, FilterAfter.FALSE],
-    #     ['df2', 'fundingRate', 'value', 'gte', 0, RankAscending.FALSE, FilterAfter.FALSE],
-    #     '1|2'
-    # )
+    ['df2', '涨跌幅max_fl_24', 'value', 'lte', 0.2, RankAscending.FALSE, FilterAfter.FALSE],
+    ['df1', 'Volume_fl_24', 'rank', 'lte', 60, RankAscending.FALSE, FilterAfter.FALSE],
+    ['df2', 'Volume_fl_24', 'rank', 'lte', 60, RankAscending.FALSE, FilterAfter.FALSE],
 ]
-
 filter_before_exec = [filter_generate(param=param) for param in filter_before_params]
-# 将默认的串联过滤转化为并联,只针对前置过滤且有使用了rank/pct类型的过滤集,value类型串并联无影响
-# filter_before_exec, tag = parallel_filter_handle(filter_before_exec)
-
-
-# filter_info = """filter_factor = ['涨跌幅max_fl_24'][0]
-# df1 = df1[df1[f'涨跌幅max_fl_24']<0.2]
-# filter_factor = ['涨跌幅max_fl_24'][0]
-# df2 = df2[df2[f'涨跌幅max_fl_24']<0.2]
-# """
-# filter_before_exec = [filter_info]
-
 
 # 后置过滤 在选币后下单前控制选定币种的资金分配系数
 filter_after_params = [
@@ -99,7 +62,7 @@ p_signal_fun = None
 # p_signal_fun = partial(ma_signal, param)
 
 # ===回放参数配置
-hourly_details = False  # True 会生成详细截面数据 持仓面板和下单面板,耗时增加20S左右
+hourly_details = True  # True 会生成详细截面数据 持仓面板和下单面板,耗时增加20S左右
 select_by_hour = False  # True 为逐小时,会对退市币精确处理,速度慢；False 速度快,模糊处理
 othCfg = {
     'log_level': 'INFO',
@@ -131,7 +94,21 @@ def main():
     if filter_after_exec:
         print('后置过滤源码：')
         [print(x, '\n') if tag in x else print(x) for x in filter_after_exec]
-    res = playback_start(playCfg, othCfg)
+    res,curve = playback_start(playCfg, othCfg)
+    curve['offset'] = curve.index.to_series().apply(lambda x: int(((x.to_pydatetime() - pd.to_datetime('2017-01-01')).total_seconds()/3600)%int(playCfg['hold_hour_num'])))
+    print(curve['offset'])
 
+    temp = pd.DataFrame()
+    hold_hour = str(playCfg['hold_hour_num'][0]) + 'H'
+    for offset, g_df in curve.groupby('offset'):
+        g_df['candle_begin_time'] = g_df.index
+        rtn, select_c = ind.cal_ind(g_df)
+        print(rtn)
+        temp = temp.append(rtn, ignore_index=True)
+        ax = plt.subplot(int(hold_hour[:-1]), 1, offset + 1)
+        ax.plot(select_c['candle_begin_time'], select_c['资金曲线'])
+    print(temp.to_markdown())
+    plt.gcf().autofmt_xdate()
+    plt.show()
 if __name__ == '__main__':
     main()

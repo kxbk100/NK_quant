@@ -67,8 +67,9 @@ def run():
 		strategy_trade_usdt = cal_strategy_trade_usdt(strategy_list, trade_usdt)
 		# =====获取账户的实际持仓
 		if debug:
-			symbol_info = pd.DataFrame(index=symbol_list, columns=['当前持仓量'])
-			symbol_info['当前持仓量'] = 0
+			# symbol_info = pd.DataFrame(index=symbol_list, columns=['当前持仓量'])
+			# symbol_info['当前持仓量'] = 0
+			symbol_info = update_symbol_info(exchange, symbol_list)
 		else:
 			symbol_info = update_symbol_info(exchange, symbol_list)
 		

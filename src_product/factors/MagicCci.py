@@ -4,7 +4,7 @@
 import numpy  as np
 import pandas as pd
 import talib as ta
-from utils.diff import add_diff
+from utils.diff import add_diff, eps
 
 
 def signal(*args):
@@ -23,7 +23,7 @@ def signal(*args):
     df['abs_diff_close'] = abs(df['tp'] - df['ma'])
     df['md'] = df['abs_diff_close'].ewm(span=n, adjust=False).mean()
 
-    df[factor_name] = (df['tp'] - df['ma']) / df['md']
+    df[factor_name] = (df['tp'] - df['ma']) / (df['md'] + eps)
 
     # # 删除中间数据
     del df['oma']

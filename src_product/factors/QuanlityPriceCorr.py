@@ -13,8 +13,7 @@ def signal(*args):
     factor_name = args[3]
     
     df[factor_name] = df['close'].rolling(
-        n).corr(df['quote_volume'].rolling(n))
-
+        n).corr(df['quote_volume'])
     if diff_num > 0:
         return add_diff(df, diff_num, factor_name)
     else:

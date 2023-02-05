@@ -16,15 +16,12 @@ def signal(*args):
     factor_name = args[3]
 
     df['force'] = df['quote_volume'] * (df['close'] - df['close'].shift(1))
-    df[factor_name] =df['force']/ df['force'].rolling(n, min_periods=1).mean()
+    df[factor_name] = df['force']/ df['force'].rolling(n, min_periods=1).mean()
 
     # ref = ma.shift(n)  # MADisplaced=REF(MA_CLOSE,M)
 
 
     del df['force']
-
-
-
 
 
     if diff_num > 0:

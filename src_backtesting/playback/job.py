@@ -162,4 +162,4 @@ def playback_start(playCfg, othCfg):
     plot_output(curve, res, data_path, save_html=True)
     # 船队作图整合
     plot_log_double(curve)
-    return res
+    return res,curve

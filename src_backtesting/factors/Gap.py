@@ -19,7 +19,6 @@ def signal(*args):
     df['_gap'] = df['_wma'] - df['_ma']
     df[factor_name] = (df['_gap'] / abs(df['_gap']).rolling(window=n).sum())
 
-
     del df['_ma']
     del df['_wma']
     del df['_gap']

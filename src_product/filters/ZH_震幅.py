@@ -11,8 +11,8 @@ def signal(*args):
 	n  = args[1]
 	factor_name = args[2]
 
-	high = df['high'].rolling(n, min_periods=1).max().shift(1)
-	low  = df['low'].rolling(n,  min_periods=1).min().shift(1)
+	high = df['high'].rolling(n, min_periods=1).max()
+	low  = df['low'].rolling(n,  min_periods=1).min()
 
 	df[factor_name] = (high / low - 1)
 

@@ -29,8 +29,7 @@ def signal(*args):
         window=n, min_periods=1).min().shift(1)
     df['vix_upper'] = df['vix_median'] + df['max'] * df['vix_std']
     df['vix_lower'] = df['vix_median'] - df['max'] * df['vix_std']
-    df[factor_name] = (
-                                   df['vix_upper'] - df['vix_lower']) * np.sign(df['vix_median'].diff(n))
+    df[factor_name] = (df['vix_upper'] - df['vix_lower']) * np.sign(df['vix_median'].diff(n))
     condition1 = np.sign(df['vix_median'].diff(
         n)) != np.sign(df['vix_median'].diff(1))
     condition2 = np.sign(df['vix_median'].diff(

@@ -8,7 +8,7 @@ from utils.diff import add_diff
 
 
 def signal(*args):
-    #该指标使用时注意n不能大于过滤K线数量的一半（不是获取K线数据的一半）
+    # 该指标使用时注意n不能大于过滤K线数量的一半（不是获取K线数据的一半）
     """
     N=10
     VI=ABS(CLOSE-REF(CLOSE,N))/SUM(ABS(CLOSE-REF(CLOSE,1)),N)

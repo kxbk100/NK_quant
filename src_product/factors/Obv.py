@@ -8,7 +8,7 @@ from utils.diff import add_diff
 
 
 def signal(*args):
-    #该指标使用时注意n不能大于过滤K线数量的一半（不是获取K线数据的一半）
+    # 该指标使用时注意n不能大于过滤K线数量的一半（不是获取K线数据的一半）
 
     df = args[0]
     n  = args[1]

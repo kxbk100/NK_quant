@@ -13,7 +13,7 @@ def signal(*args):
     factor_name = args[3]
     
     df['P'] = np.where(df['close'] > df['close'].shift(1), 1, 0)  # IF(CLOSE>REF(CLOSE,1),1,0)
-    df[factor_name] = df['P'] / n * 100  # PSY=IF(CLOSE>REF(CLOSE,1),1,0)/N*100
+    df[factor_name] = df['P'].rolling(n, min_periods=1).sum() / n * 100  # PSY=IF(CLOSE>REF(CLOSE,1),1,0)/N*100
 
     # 删除多余列
     del df['P']
